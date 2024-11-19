@@ -20,8 +20,8 @@ router.get("/:mentorId/assigned-students", mentorController.getAssignedStudents)
 // Add these new routes
 router.get("/:mentorId/dashboard-stats", mentorController.getDashboardStats);
 router.get("/:mentorId/pending-evaluations", mentorController.getPendingEvaluations);
-router.post("/evaluate-report", mentorController.evaluateReport);
-router.post("/create-assignment", mentorController.createAssignment);
-router.get("/:mentorId/notifications", mentorController.getNotifications);
+// router.post("/evaluate-report", mentorController.evaluateReport);
+// router.post("/create-assignment", mentorController.createAssignment);
+// router.get("/:mentorId/notifications", mentorController.getNotifications);
 
 module.exports = router;
