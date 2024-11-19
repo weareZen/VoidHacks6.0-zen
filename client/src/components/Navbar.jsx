@@ -24,8 +24,8 @@ const Navbar = () => {
 
   const navbarConfig = {
     admin: [
-      { label: 'Manage Students', icon: <Users />, path: '/admin/manage/students' },
-      { label: 'Manage Mentors', icon: <Users />, path: '/admin/manage/mentors' },
+      { label: 'Manage Students', icon: <Users />, path: '/admin/manageStudents' },
+      { label: 'Manage Mentors', icon: <Users />, path: '/admin/manageMentors' },
       { label: 'Verify Companies', icon: <CheckCircle />, path: '/admin/company-verification' },
       { label: 'Reports', icon: <FileText />, path: '/admin/reports' },
       { label: 'Settings', icon: <Settings />, path: '/admin/settings' },
@@ -103,7 +103,7 @@ const Navbar = () => {
         {/* Brand/Logo */}
         <div className="mr-4 flex">
           <Link href="/" className="font-semibold">
-          <img src="svvv.png" alt="" className='w-16 p-2 h-16 mx-auto'/>
+          <img src="/svvv.png" alt="" className='w-16 p-2 h-16 mx-auto'/>
           </Link>
         </div>
 
