@@ -36,7 +36,7 @@ const LoginPage = () => {
     try {
       const result = await login(userType, formData);
       if (result) {
-        router.replace('/');
+        window.location.href = '/';
       }
     } catch (error) {
       setError(error.message || 'Failed to login');

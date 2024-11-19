@@ -1,14 +1,16 @@
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
-  const token = request.cookies.get('token') || request.headers.get('authorization');
-  const isLoginPage = request.nextUrl.pathname === '/login';
+  const token = request.cookies.get('token');
+  const isPublicPath = ['/login'].includes(request.nextUrl.pathname);
 
-  if (!token && !isLoginPage) {
+  // If no token and trying to access protected route
+  if (!token && !isPublicPath) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  if (token && isLoginPage) {
+  // If has token and trying to access login page
+  if (token && isPublicPath) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
@@ -16,5 +18,18 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/', '/login']
+  matcher: [
+    '/',
+    '/login',
+    '/dashboard',
+    '/users',
+    '/verify',
+    '/reports',
+    '/settings',
+    '/students',
+    '/evaluate',
+    '/upload-reports',
+    '/certificates',
+    '/chat'
+  ]
 }; 

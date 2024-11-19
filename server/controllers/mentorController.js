@@ -120,3 +120,35 @@ exports.getMentorById = async (req, res) => {
     res.status(500).json({ message: "Server error", error });
   }
 };
+
+// Get Assigned Students for a Mentor
+exports.getAssignedStudents = async (req, res) => {
+  const { mentorId } = req.params;
+
+  try {
+    const mentor = await Mentor.findById(mentorId)
+      .populate({
+        path: "assignedStudents",
+        select: "firstName lastName email enrollementNumber internshipDetails progress",
+        populate: {
+          path: "internalMentor",
+          select: "firstName lastName email department"
+        }
+      });
+
+    if (!mentor) {
+      return res.status(404).json({ message: "Mentor not found" });
+    }
+
+    res.status(200).json({
+      message: "Assigned students retrieved successfully",
+      assignedStudents: mentor.assignedStudents
+    });
+  } catch (error) {
+    console.error('Error in getAssignedStudents:', error);
+    res.status(500).json({ 
+      message: "Error retrieving assigned students", 
+      error: error.message 
+    });
+  }
+};

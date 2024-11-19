@@ -59,3 +59,76 @@ exports.loginUser = async (req, res) => {
     res.status(500).json({ message: "Internal server error.", error });
   }
 };
+
+// Assign Mentor to Student
+exports.assignMentorToStudent = async (req, res) => {
+  try {
+    const { studentId, mentorId } = req.body;
+
+    // Check if student exists
+    const student = await Student.findById(studentId);
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    // Check if mentor exists
+    const mentor = await Mentor.findById(mentorId);
+    if (!mentor) {
+      return res.status(404).json({ message: "Mentor not found" });
+    }
+
+    // Check if student already has a mentor
+    if (student.internalMentor) {
+      // Remove student from previous mentor's assignedStudents
+      await Mentor.findByIdAndUpdate(student.internalMentor, {
+        $pull: { assignedStudents: student._id }
+      });
+    }
+
+    // Assign new mentor to student
+    student.internalMentor = mentorId;
+    await student.save();
+
+    // Add student to mentor's assignedStudents if not already present
+    if (!mentor.assignedStudents.includes(student._id)) {
+      mentor.assignedStudents.push(student._id);
+      await mentor.save();
+    }
+
+    // Populate mentor details in response
+    const updatedStudent = await Student.findById(studentId)
+      .populate('internalMentor', 'firstName lastName email department');
+
+    res.status(200).json({
+      message: "Mentor assigned successfully",
+      student: updatedStudent
+    });
+
+  } catch (error) {
+    console.error('Error in assignMentorToStudent:', error);
+    res.status(500).json({
+      message: "Error assigning mentor to student",
+      error: error.message
+    });
+  }
+};
+
+// Get all mentor-student assignments
+exports.getAllMentorAssignments = async (req, res) => {
+  try {
+    const students = await Student.find({ internalMentor: { $exists: true } })
+      .populate('internalMentor', 'firstName lastName email department')
+      .select('firstName lastName email enrollementNumber internalMentor');
+
+    res.status(200).json({
+      message: "Mentor assignments retrieved successfully",
+      assignments: students
+    });
+  } catch (error) {
+    console.error('Error in getAllMentorAssignments:', error);
+    res.status(500).json({
+      message: "Error retrieving mentor assignments",
+      error: error.message
+    });
+  }
+};

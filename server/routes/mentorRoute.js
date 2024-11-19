@@ -14,4 +14,7 @@ router.get("/all", mentorController.getAllMentors);
 // Get a particular Mentor by ID
 router.get("/:mentorId", mentorController.getMentorById);
 
+// Add new route for assigned students
+router.get("/:mentorId/assigned-students", mentorController.getAssignedStudents);
+
 module.exports = router;

@@ -1,6 +1,7 @@
 'use client'
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Loading from '@/components/Loading';
 
 const AuthContext = createContext();
 
@@ -87,12 +88,17 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
     try {
+      // Clear cookie first
+      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+      // Clear localStorage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+      // Clear user state
       setUser(null);
-      router.push('/login');
+      // Force a full page reload to trigger middleware
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -109,7 +115,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading ? children : <div>Loading...</div>}
+      {!loading ? children : <Loading />}
     </AuthContext.Provider>
   );
 }
