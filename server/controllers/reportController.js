@@ -195,4 +195,84 @@ const createNotification = async (recipientId, recipientModel, type, title, mess
     message
   });
   await notification.save();
+};
+
+// Add new function to check and create due reports
+exports.checkAndCreateDueReports = async (studentId) => {
+  try {
+    const student = await Student.findById(studentId)
+      .populate('internalMentor')
+      .populate('internshipDetails');
+    
+    const today = new Date();
+    const internshipStart = new Date(student.internshipDetails.startDate);
+    const daysSinceStart = Math.floor((today - internshipStart) / (1000 * 60 * 60 * 24));
+
+    // Check Fortnightly Reports (every 15 days)
+    if (daysSinceStart % 15 === 0) {
+      await Report.create({
+        type: 'FORTNIGHTLY',
+        student: studentId,
+        mentor: student.internalMentor._id,
+        title: `Fortnightly Report - ${new Date().toLocaleDateString()}`,
+        content: 'Please fill in your fortnightly progress report',
+        deadline: new Date(today.getTime() + (15 * 24 * 60 * 60 * 1000))
+      });
+    }
+
+    // Check Monthly Assignments (every 30 days)
+    if (daysSinceStart % 30 === 0) {
+      await Report.create({
+        type: 'ASSIGNMENT',
+        student: studentId,
+        mentor: student.internalMentor._id,
+        title: `Monthly Assignment - ${new Date().toLocaleDateString()}`,
+        content: 'Monthly assignment details to be added by mentor',
+        deadline: new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000))
+      });
+    }
+
+    // Check Final Evaluation (5 days before internship ends)
+    const internshipEnd = new Date(student.internshipDetails.endDate);
+    const daysUntilEnd = Math.floor((internshipEnd - today) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilEnd === 5) {
+      await Report.create({
+        type: 'FINAL_EVALUATION',
+        student: studentId,
+        mentor: student.internalMentor._id,
+        title: 'Final Industry Mentor Evaluation',
+        content: 'Final evaluation by industry mentor',
+        deadline: internshipEnd
+      });
+    }
+  } catch (error) {
+    console.error('Error creating due reports:', error);
+  }
+};
+
+// Add function to check overdue reports
+exports.checkOverdueReports = async () => {
+  try {
+    const overdueReports = await Report.find({
+      status: { $in: ['PENDING', 'SUBMITTED'] },
+      deadline: { $lt: new Date() }
+    });
+
+    for (const report of overdueReports) {
+      report.status = 'OVERDUE';
+      await report.save();
+
+      // Create notification for overdue report
+      await createNotification(
+        report.student,
+        'Student',
+        'DEADLINE_REMINDER',
+        'Report Overdue',
+        `Your ${report.type} report is overdue. Please submit as soon as possible.`
+      );
+    }
+  } catch (error) {
+    console.error('Error checking overdue reports:', error);
+  }
 }; 

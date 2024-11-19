@@ -51,7 +51,7 @@ const Chat = () => {
     });
 
     socket.on("connect_error", (err) => {
-      console.error("[ERROR] Connection failed:", err);
+      console.log("[ERROR] Connection failed:", err);
       setTimeout(() => socket.connect(), 1000);
     });
 

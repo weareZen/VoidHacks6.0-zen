@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 
 export function middleware(request) {
-  const token = request.cookies.get('token');
-  const isPublicPath = ['/login'].includes(request.nextUrl.pathname);
+  const token = request.cookies.get('token') || request.headers.get('Authorization');
+  const isPublicPath = request.nextUrl.pathname === '/login';
 
   // If no token and trying to access protected route
   if (!token && !isPublicPath) {

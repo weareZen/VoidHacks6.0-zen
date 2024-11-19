@@ -5,6 +5,7 @@ const cors = require('cors');
 const notificationRoutes = require('./routes/notificationRoute');
 const { createServer } = require('http'); 
 const { Server } = require('socket.io'); 
+const initializeScheduler = require('./utils/scheduler');
 
 dotenv.config();
 const port = process.env.PORT || 5000;
@@ -45,6 +46,9 @@ app.use('/api/v1/student', require("./routes/studentRoute"));
 app.use('/api/v1/mentor', require("./routes/mentorRoute"));
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/reports', require('./routes/reportRoute'));
+
+// Initialize scheduler
+initializeScheduler();
 
 // Socket.IO logic
 io.on('connection', (socket) => {

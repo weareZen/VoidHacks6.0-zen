@@ -57,21 +57,36 @@ exports.loginStudent = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: student._id, userType: student.userType }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { id: student._id, userType: 'student' },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     const user = {
       id: student._id,
       firstName: student.firstName,
       lastName: student.lastName,
       email: student.email,
-      userType: 'student'
+      userType: 'student',
+      enrollementNumber: student.enrollementNumber
     };
 
-    res.status(200).json({ message: "Login successful", token, user });
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error logging in", error });
+    res.status(500).json({ message: "Error logging in", error: error.message });
   }
 };
 

@@ -42,31 +42,35 @@ export function AuthProvider({ children }) {
 
   const login = async (userType, credentials) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/v1/${userType}/login`, {
+      const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/${userType}/login`;
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(credentials),
+        credentials: 'include'
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(data.message || 'Login failed');
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to login');
+      }
+
+      if (!data.token || !data.user) {
+        throw new Error('Invalid response format from server');
+      }
 
       localStorage.setItem('token', data.token);
-      jsCookie.set('token', data.token, { path: '/' });
+      localStorage.setItem('user', JSON.stringify(data.user));
+      jsCookie.set('token', data.token, { expires: 1 });
 
-      const userData = 
-        userType === 'student' ? data.student :
-        userType === 'mentor' ? data.mentor :
-        userType === 'admin' ? data.admin || data : null;
-
-      if (!userData) throw new Error('Invalid response format');
-
-      localStorage.setItem('user', JSON.stringify(userData));
-      setUser(userData);
+      setUser(data.user);
       return true;
     } catch (error) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      console.error('Login error:', error);
       throw error;
     }
   };

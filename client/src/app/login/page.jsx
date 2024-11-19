@@ -34,12 +34,18 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
+      if (!formData.email || !formData.password) {
+        throw new Error('Please fill in all fields');
+      }
+
       const result = await login(userType, formData);
       if (result) {
-        window.location.href = '/';
+        router.push('/');
+        router.refresh();
       }
     } catch (error) {
-      setError(error.message || 'Failed to login');
+      console.error('Login error:', error);
+      setError(error.message || 'Failed to login. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }
