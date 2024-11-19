@@ -153,3 +153,49 @@ exports.getAssignedStudents = async (req, res) => {
     });
   }
 };
+
+// Get Dashboard Stats
+exports.getDashboardStats = async (req, res) => {
+  const { mentorId } = req.params;
+
+  try {
+    const mentor = await Mentor.findById(mentorId)
+      .populate('assignedStudents');
+    
+    const stats = {
+      totalStudents: mentor.assignedStudents.length,
+      pendingEvaluations: 0, // Calculate from reports
+      averageCompletion: 0, // Calculate from student progress
+    };
+
+    // Calculate pending evaluations and average completion
+    // ... implementation needed ...
+
+    res.status(200).json(stats);
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error retrieving dashboard stats", 
+      error: error.message 
+    });
+  }
+};
+
+// Get Pending Evaluations
+exports.getPendingEvaluations = async (req, res) => {
+  const { mentorId } = req.params;
+
+  try {
+    // Fetch pending reports and assignments
+    // ... implementation needed ...
+
+    res.status(200).json({
+      pendingReports: [],
+      pendingAssignments: []
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error retrieving pending evaluations", 
+      error: error.message 
+    });
+  }
+};
