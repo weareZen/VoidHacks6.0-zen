@@ -3,7 +3,9 @@ import Chat from '../../../components/Chat'
 
 const page = () => {
   return (
-    <Chat/>
+    <div className="container mx-auto py-4">
+      <Chat />
+    </div>
   )
 }
 
