@@ -78,8 +78,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       
-      // Return early if successful
-      return data;
+      return true;
     } catch (error) {
       console.error('Login error:', error);
       localStorage.removeItem('token');

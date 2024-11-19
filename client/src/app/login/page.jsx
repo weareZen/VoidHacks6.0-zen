@@ -23,10 +23,10 @@ const LoginPage = () => {
   const [userType, setUserType] = useState('student');
 
   useEffect(() => {
-    if (!loading && user) {
+    if (user) {
       router.replace('/');
     }
-  }, [user, loading, router]);
+  }, [user, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,8 +34,10 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      await login(userType, formData);
-      router.replace('/');
+      const result = await login(userType, formData);
+      if (result) {
+        router.replace('/');
+      }
     } catch (error) {
       setError(error.message || 'Failed to login');
     } finally {
