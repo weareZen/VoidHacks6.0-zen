@@ -2,7 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import jsCookie from 'js-cookie';
-import Loading from '@/components/Loading';
+import Loading from '../components/Loading';
 
 const AuthContext = createContext();
 
