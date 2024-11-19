@@ -66,27 +66,22 @@ export function AuthProvider({ children }) {
         throw new Error(data.message || 'Login failed');
       }
 
-      // Extract user data based on userType
+      // Store token first
+      localStorage.setItem('token', data.token);
+
+      // Extract and store user data
       const userData = data[userType] || data;
-      
       if (!userData) {
         throw new Error('Invalid response format');
       }
 
-      // Store auth data
-      localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(userData));
-      
-      // Update state
       setUser(userData);
       
-      // Navigate to home
-      router.push('/');
-      
+      // Return early if successful
       return data;
     } catch (error) {
       console.error('Login error:', error);
-      // Clean up any partial data
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       throw error;
