@@ -13,40 +13,39 @@ import {
   UserPlus,
   CheckCircle
 } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
+import Loading from '@/components/Loading';
 import { DashboardSkeleton } from '@/components/ui/loading';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
-  const [dashboardData, setDashboardData] = useState(null);
-
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        // Replace with actual API call
-        const response = await fetch('/api/admin/dashboard-stats');
-        const data = await response.json();
-        setDashboardData(data);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
-
-  if (isLoading) return <DashboardSkeleton />;
-
-  // Static data for now
+  const [isDataLoading, setIsDataLoading] = useState(true);
+  
+  // Static data for now - we'll replace this with API data later
   const adminStats = {
     totalStudents: 150,
     totalMentors: 25,
     pendingApprovals: 10,
     activeInternships: 85
   };
+
+  const pendingApprovals = [
+    {
+      id: 1,
+      type: 'company',
+      name: 'Tech Corp',
+      status: 'Pending Verification',
+      submittedDate: '2024-03-15'
+    },
+    {
+      id: 2,
+      type: 'internship',
+      studentName: 'John Doe',
+      company: 'Innovation Labs',
+      status: 'Pending Approval',
+      submittedDate: '2024-03-14'
+    }
+  ];
 
   const recentActivities = [
     {
@@ -60,31 +59,33 @@ export default function AdminDashboard() {
       type: 'company_verification',
       message: 'Company verification pending: Tech Corp',
       timestamp: '3 hours ago'
-    },
-    {
-      id: 3,
-      type: 'mentor_assignment',
-      message: 'Mentor assigned to 3 new students',
-      timestamp: '5 hours ago'
     }
   ];
 
-  const pendingApprovals = [
-    {
-      id: 1,
-      type: 'company',
-      name: 'Tech Solutions Ltd',
-      status: 'Pending Verification',
-      submittedDate: '2024-03-15'
-    },
-    {
-      id: 2,
-      type: 'internship',
-      studentName: 'Alice Johnson',
-      company: 'Innovation Labs',
-      status: 'Pending Approval'
-    }
-  ];
+  useEffect(() => {
+    // Initial loading animation
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
+
+    // Simulated data fetch
+    const fetchData = async () => {
+      try {
+        // We'll implement the actual API call later
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        setIsDataLoading(false);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setIsDataLoading(false);
+      }
+    };
+
+    fetchData();
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) return <Loading />;
+  if (isDataLoading) return <DashboardSkeleton />;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
