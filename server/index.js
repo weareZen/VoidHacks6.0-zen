@@ -6,6 +6,7 @@ const notificationRoutes = require('./routes/notificationRoute');
 const { createServer } = require('http'); 
 const { Server } = require('socket.io'); 
 const initializeScheduler = require('./utils/scheduler');
+const studentRoutes = require('./routes/studentRoute');
 
 dotenv.config();
 const port = process.env.PORT || 5000;
@@ -46,6 +47,7 @@ app.use('/api/v1/student', require("./routes/studentRoute"));
 app.use('/api/v1/mentor', require("./routes/mentorRoute"));
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/reports', require('./routes/reportRoute'));
+app.use('/api/v1/students', studentRoutes);
 
 // Initialize scheduler
 initializeScheduler();

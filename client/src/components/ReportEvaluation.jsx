@@ -9,18 +9,15 @@ import { Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from './hooks/use-toast';
 
-export default function ReportEvaluation({ report }) {
+export default function ReportEvaluation({ report, onEvaluated }) {
   const { toast } = useToast();
-  const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluation, setEvaluation] = useState({
-    points: 5,
+    points: 0,
     feedback: ''
   });
 
-  const handleEvaluate = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsEvaluating(true);
-
     try {
       const response = await fetch(`http://localhost:5000/api/v1/reports/${report._id}/evaluate`, {
         method: 'POST',
@@ -34,18 +31,17 @@ export default function ReportEvaluation({ report }) {
       if (!response.ok) throw new Error('Failed to submit evaluation');
 
       toast({
-        title: 'Success',
-        description: 'Report evaluated successfully',
-        variant: 'success'
+        title: "Success",
+        description: "Report evaluated successfully",
       });
+      
+      onEvaluated();
     } catch (error) {
       toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to submit evaluation",
+        variant: "destructive",
       });
-    } finally {
-      setIsEvaluating(false);
     }
   };
 
@@ -85,28 +81,23 @@ export default function ReportEvaluation({ report }) {
             </div>
           )}
 
-          <form onSubmit={handleEvaluate} className="space-y-4">
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Evaluation Points (0-10)</h4>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label>Points (0-10)</label>
               <Slider
-                value={[evaluation.points]}
-                onValueChange={([value]) => setEvaluation(prev => ({ ...prev, points: value }))}
+                min={0}
                 max={10}
                 step={1}
+                value={[evaluation.points]}
+                onValueChange={(value) => setEvaluation({ ...evaluation, points: value[0] })}
               />
-              <p className="text-sm text-muted-foreground text-right">{evaluation.points} points</p>
             </div>
-
             <Textarea
-              placeholder="Provide feedback..."
+              placeholder="Feedback"
               value={evaluation.feedback}
-              onChange={(e) => setEvaluation(prev => ({ ...prev, feedback: e.target.value }))}
-              rows={4}
+              onChange={(e) => setEvaluation({ ...evaluation, feedback: e.target.value })}
             />
-
-            <Button type="submit" disabled={isEvaluating}>
-              {isEvaluating ? 'Submitting...' : 'Submit Evaluation'}
-            </Button>
+            <Button type="submit">Submit Evaluation</Button>
           </form>
         </div>
       </CardContent>

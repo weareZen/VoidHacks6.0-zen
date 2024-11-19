@@ -4,7 +4,7 @@ import { useAuth } from '../../../context/AuthContext';
 import Navbar from '../../../components/Navbar';
 import ProfileCard from '../../../components/ProfileCard';
 
-export default function AdminProfile() {
+export default function MentorProfile() {
   const { user } = useAuth();
 
   return (
@@ -15,4 +15,4 @@ export default function AdminProfile() {
       </div>
     </>
   );
-}
+} 

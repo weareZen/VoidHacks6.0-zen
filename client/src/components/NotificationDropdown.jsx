@@ -31,7 +31,7 @@ export default function NotificationDropdown() {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_APP_API_URL}/api/v1/notifications?userId=${user.id}&userType=${user.userType}`,
+        `http://localhost:5000/api/v1/notifications?userId=${user.id}&userType=${user.userType}`,
         {
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`,

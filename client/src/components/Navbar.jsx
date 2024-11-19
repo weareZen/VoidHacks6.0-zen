@@ -68,15 +68,6 @@ const Navbar = () => {
 
   const UserMenu = ({ className }) => (
     <div className={cn("flex items-center gap-2", className)}>
-      <Button 
-        variant="ghost" 
-        size="icon"
-        className="relative"
-      >
-        <Bell className="h-5 w-5" />
-        <span className="absolute top-0 right-0 h-2 w-2 bg-destructive rounded-full" />
-      </Button>
-      
       <Button
         variant="ghost"
         size="icon"

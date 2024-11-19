@@ -12,40 +12,53 @@ import ReportList from '../ReportList';
 export default function StudentDashboard() {
   const { user } = useAuth();
   const [studentReports, setStudentReports] = useState([]);
+  const [studentData, setStudentData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDataLoading, setIsDataLoading] = useState(true);
-  
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-    if (user?.id) {
-      fetchReports();
-    }
-  }, [user]);
+    const fetchStudentData = async () => {
+      try {
+        if (!user?.id) return;
 
-  const fetchReports = async () => {
-    try {
-      if (!user?.id) {
-        throw new Error('User ID not found');
-      }
+        const [reportsResponse, studentResponse] = await Promise.all([
+          fetch(`http://localhost:5000/api/v1/students/reports/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }),
+          fetch(`http://localhost:5000/api/v1/students/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          })
+        ]);
 
-      const response = await fetch(`http://localhost:5000/api/v1/reports/student/${user.id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        if (!reportsResponse.ok || !studentResponse.ok) {
+          throw new Error('Failed to fetch data');
         }
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch reports');
-      
-      const data = await response.json();
-      setStudentReports(data);
-    } catch (error) {
-      console.error('Error fetching reports:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
+        const [reportsData, studentData] = await Promise.all([
+          reportsResponse.json(),
+          studentResponse.json()
+        ]);
+
+        setStudentReports(reportsData.reports || []);
+        setStudentData(studentData.student);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStudentData();
+  }, [user?.id]);
+
+  if (error) return <div>Error loading dashboard: {error}</div>;
   if (isLoading) return <Loading />;
-  if (isDataLoading) return <DashboardSkeleton />;
+  if (!studentData) return <div>No student data found</div>;
 
   // Static data for now
   const internshipDetails = {
