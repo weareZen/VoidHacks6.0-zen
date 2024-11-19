@@ -16,6 +16,7 @@ import {
   SheetTrigger,
 } from "../components/ui/sheet";
 import { cn } from '../lib/utils';
+import NotificationDropdown from '../components/NotificationDropdown';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -141,6 +142,12 @@ const Navbar = () => {
               </div>
             </SheetContent>
           </Sheet>
+        </div>
+
+        {/* Right Section */}
+        <div className="flex items-center gap-4">
+          <NotificationDropdown />
+          {/* Other navbar items */}
         </div>
 
       </div>

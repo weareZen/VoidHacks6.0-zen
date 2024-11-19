@@ -1,6 +1,6 @@
 "use client"
 import React, { useState } from 'react';
-import Navbar from '@/components/Navbar';
+import Navbar from '../../../components/Navbar';
 
 
 const Button = ({ children, onClick, variant = 'primary', className = '' }) => {

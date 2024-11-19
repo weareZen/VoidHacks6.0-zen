@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { useAuth } from '../../context/AuthContext';
+import { Progress } from '../../components/ui/progress';
+import { Button } from '../../components/ui/button';
 import { 
   Users, 
   Building,
@@ -13,8 +13,9 @@ import {
   UserPlus,
   CheckCircle
 } from 'lucide-react';
-import Loading from '@/components/Loading';
-import { DashboardSkeleton } from '@/components/ui/loading';
+import { Separator } from '../../components/ui/separator';
+import { DashboardSkeleton } from '../../components/ui/loading';
+import Loading from '../../components/Loading';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -79,6 +80,30 @@ export default function AdminDashboard() {
     fetchData();
     return () => clearTimeout(timer);
   }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/v1/admin/dashboard-stats', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch dashboard data');
+      }
+      
+      const data = await response.json();
+      setAdminStats(data.stats);
+      setPendingApprovals(data.pendingApprovals);
+      setRecentActivities(data.recentActivities);
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setIsDataLoading(false);
+    }
+  };
 
   if (isLoading) return <Loading />;
   if (isDataLoading) return <DashboardSkeleton />;
@@ -167,15 +192,19 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start gap-4">
-                  <Bell className="mt-1 h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm">{activity.message}</p>
-                    <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
+              {recentActivities.map((activity, index) => (
+                <React.Fragment key={activity.id}>
+                  <div className="flex items-start gap-3">
+                    <Bell className="h-5 w-5 text-muted-foreground mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{activity.message}</p>
+                      <p className="text-xs text-muted-foreground">{activity.timestamp}</p>
+                    </div>
                   </div>
-                  <Separator />
-                </div>
+                  {index < recentActivities.length - 1 && (
+                    <Separator className="my-2" />
+                  )}
+                </React.Fragment>
               ))}
             </div>
           </CardContent>

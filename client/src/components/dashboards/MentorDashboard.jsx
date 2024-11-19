@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { useAuth } from '../../context/AuthContext';
+import { Progress } from '../../components/ui/progress';
+import { Button } from '../../components/ui/button';
 import { 
   Users, 
   ClipboardCheck, 
@@ -12,14 +12,24 @@ import {
   UserCheck,
   BarChart
 } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import Loading from '@/components/Loading';
-import { DashboardSkeleton } from '@/components/ui/loading';
+import { Separator } from '../ui/separator';
+import Loading from '../Loading';
+import { DashboardSkeleton } from '../ui/loading';
+import ReportEvaluation from '../ReportEvaluation';
+import ReportAnalytics from '../ReportAnalytics';
+import DeadlineNotifications from '../DeadlineNotifications';
 
 export default function MentorDashboard() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(true);
+  const [mentorStats, setMentorStats] = useState({
+    totalStudents: 0,
+    pendingEvaluations: 0,
+    averageCompletion: 0
+  });
+  const [pendingReports, setPendingReports] = useState([]);
+  const [allReports, setAllReports] = useState([]);
   
   useEffect(() => {
     // Initial loading animation
@@ -30,11 +40,29 @@ export default function MentorDashboard() {
     // Simulated data fetch
     const fetchData = async () => {
       try {
-        // Replace with actual API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsDataLoading(false);
+        const [statsResponse, reportsResponse] = await Promise.all([
+          fetch(`http://localhost:5000/api/v1/mentor/stats/${user.id}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          }),
+          fetch(`http://localhost:5000/api/v1/reports/mentor/${user.id}`, {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          })
+        ]);
+
+        if (!statsResponse.ok || !reportsResponse.ok) {
+          throw new Error('Failed to fetch data');
+        }
+
+        const stats = await statsResponse.json();
+        const reports = await reportsResponse.json();
+
+        setMentorStats(stats);
+        setPendingReports(reports.pendingReports);
+        setAllReports(reports.allReports);
       } catch (error) {
         console.error('Error fetching data:', error);
+      } finally {
+        setIsDataLoading(false);
       }
     };
 
@@ -46,12 +74,6 @@ export default function MentorDashboard() {
   if (isDataLoading) return <DashboardSkeleton />;
 
   // Static data for now
-  const mentorStats = {
-    totalStudents: 15,
-    pendingEvaluations: 5,
-    averageCompletion: 65
-  };
-
   const assignedStudents = [
     {
       id: 1,
@@ -76,21 +98,6 @@ export default function MentorDashboard() {
         totalReports: 12,
         completionPercentage: 33
       }
-    }
-  ];
-
-  const pendingReports = [
-    {
-      id: 1,
-      studentName: "Alice Johnson",
-      title: "Fortnightly Report - Week 2",
-      submissionDate: "2024-03-15"
-    },
-    {
-      id: 2,
-      studentName: "Bob Smith",
-      title: "Fortnightly Report - Week 4",
-      submissionDate: "2024-03-14"
     }
   ];
 
@@ -139,6 +146,18 @@ export default function MentorDashboard() {
           View Analytics
         </Button>
       </div>
+
+      <DeadlineNotifications reports={pendingReports} />
+
+      {/* Reports Analytics */}
+      <Card className="lg:col-span-2">
+        <CardHeader>
+          <CardTitle>Reports Analytics</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ReportAnalytics reports={allReports} />
+        </CardContent>
+      </Card>
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -1,37 +1,48 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { useAuth } from '../../context/AuthContext';
+import { Progress } from '../../components/ui/progress';
+import { Button } from '../../components/ui/button';
 import { FileUp, MessageCircle, Bell } from 'lucide-react';
-import Loading from '@/components/Loading';
-import { DashboardSkeleton } from '@/components/ui/loading';
+import Loading from '../Loading';
+import { DashboardSkeleton } from '../ui/loading';
+import ReportSubmission from '../ReportSubmission'
+import ReportList from '../ReportList';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
+  const [studentReports, setStudentReports] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(true);
   
   useEffect(() => {
-    // Initial loading animation
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    if (user?.id) {
+      fetchReports();
+    }
+  }, [user]);
 
-    // Simulated data fetch
-    const fetchData = async () => {
-      try {
-        // Replace with actual API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsDataLoading(false);
-      } catch (error) {
-        console.error('Error fetching data:', error);
+  const fetchReports = async () => {
+    try {
+      if (!user?.id) {
+        throw new Error('User ID not found');
       }
-    };
 
-    fetchData();
-    return () => clearTimeout(timer);
-  }, []);
+      const response = await fetch(`http://localhost:5000/api/v1/reports/student/${user.id}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) throw new Error('Failed to fetch reports');
+      
+      const data = await response.json();
+      setStudentReports(data);
+    } catch (error) {
+      console.error('Error fetching reports:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (isLoading) return <Loading />;
   if (isDataLoading) return <DashboardSkeleton />;
@@ -108,6 +119,9 @@ export default function StudentDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <ReportSubmission />
+      <ReportList reports={studentReports} />
 
       {/* Internship Details */}
       <Card>

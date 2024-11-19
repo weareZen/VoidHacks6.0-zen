@@ -78,18 +78,19 @@ exports.loginMentor = async (req, res) => {
     // Generate JWT token
     const token = generateToken(mentor);
 
+    const user = {
+      id: mentor._id,
+      firstName: mentor.firstName,
+      lastName: mentor.lastName,
+      email: mentor.email,
+      userType: 'mentor'
+    };
+
     // Respond with mentor data and token
     res.status(200).json({
-      mentor: {
-        id: mentor._id,
-        firstName: mentor.firstName,
-        lastName: mentor.lastName,
-        email: mentor.email,
-        department: mentor.department,
-        officeLocation: mentor.officeLocation,
-        userType: mentor.userType,
-      },
+      message: "Login successful", 
       token,
+      user
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error });

@@ -1,7 +1,7 @@
 "use client"
 import React from 'react';
 import { Bell, CheckCircle, Info, AlertTriangle, XCircle } from 'lucide-react';
-import Navbar from '@/components/Navbar';
+import Navbar from '../../../components/Navbar';
 
 const NotificationPage = () => {
   const notifications = [
