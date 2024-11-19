@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { X, Search } from "lucide-react";
-import Navbar from "@/components/Navbar";
+import Navbar from "../../../components/Navbar";
 
 const StudentManagement = () => {
   const [students, setStudents] = useState([

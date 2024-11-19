@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { useAuth } from '../../context/AuthContext';
+import { Progress } from '../../components/ui/progress';
+import { Button } from '../../components/ui/button';
 import { FileUp, MessageCircle, Bell } from 'lucide-react';
-import Loading from '@/components/Loading';
-import { DashboardSkeleton } from '@/components/ui/loading';
+import Loading from '../../components/Loading';
+import { DashboardSkeleton } from '../../components/ui/loading';
 
 export default function StudentDashboard() {
   const { user } = useAuth();

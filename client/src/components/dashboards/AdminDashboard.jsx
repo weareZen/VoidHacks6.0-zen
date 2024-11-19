@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/context/AuthContext';
-import { Progress } from '@/components/ui/progress';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { useAuth } from '../../context/AuthContext';
+import { Progress } from '../../components/ui/progress';
+import { Button } from '../../components/ui/button';
 import { 
   Users, 
   Building,
@@ -13,8 +13,8 @@ import {
   UserPlus,
   CheckCircle
 } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import { DashboardSkeleton } from '@/components/ui/loading';
+import { Separator } from '../../components/ui/separator';
+import { DashboardSkeleton } from '../../components/ui/loading';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -29,7 +29,7 @@ export default function AdminDashboard() {
         const data = await response.json();
         setDashboardData(data);
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.log('Error fetching dashboard data:', error);
       } finally {
         setIsLoading(false);
       }
