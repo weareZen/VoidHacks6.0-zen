@@ -20,16 +20,13 @@ export default function AdminDashboard() {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(true);
-  
-  // Static data for now - we'll replace this with API data later
-  const adminStats = {
+  const [adminStats, setAdminStats] = useState({
     totalStudents: 150,
     totalMentors: 25,
     pendingApprovals: 10,
     activeInternships: 85
-  };
-
-  const pendingApprovals = [
+  });
+  const [pendingApprovals, setPendingApprovals] = useState([
     {
       id: 1,
       type: 'company',
@@ -45,9 +42,8 @@ export default function AdminDashboard() {
       status: 'Pending Approval',
       submittedDate: '2024-03-14'
     }
-  ];
-
-  const recentActivities = [
+  ]);
+  const [recentActivities, setRecentActivities] = useState([
     {
       id: 1,
       type: 'student_registration',
@@ -60,7 +56,7 @@ export default function AdminDashboard() {
       message: 'Company verification pending: Tech Corp',
       timestamp: '3 hours ago'
     }
-  ];
+  ]);
 
   useEffect(() => {
     // Initial loading animation
