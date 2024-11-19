@@ -23,7 +23,7 @@ app.get('/', (req, res) => {
   res.send('Server is running ...');
 });
 
-// app.use('/api/v1/user', userRoutes); 
+app.use('/api/v1/admin', require("./routes/adminRoute")); 
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
