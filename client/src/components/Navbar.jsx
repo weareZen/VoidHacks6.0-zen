@@ -1,93 +1,150 @@
-import React from 'react'
-import Link from 'next/link'
-import { useAuth } from '@/context/AuthContext'
-import { 
-  Home, Users, CheckCircle, FileText, Settings, Bell, 
-  User, LogOut, FileUp, MessageCircle, Award 
-} from 'lucide-react'
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
+import { usePathname } from 'next/navigation';
+import {
+  Home, Users, CheckCircle, FileText, Settings, 
+  Bell, User, LogOut, FileUp, MessageCircle, Award,
+  Menu, X
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { cn } from '@/lib/utils';
 
 const Navbar = () => {
-  const { user, logout } = useAuth()
-  
+  const { user, logout } = useAuth();
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+
   const navbarConfig = {
     admin: [
-      { label: 'Dashboard', icon: <Home />, path: '/admin/dashboard' },
-      { 
-        label: 'Manage Users', 
-        icon: <Users />, 
-        subItems: [
-          { label: 'Students', path: '/admin/manage/students' },
-          { label: 'Mentors', path: '/admin/manage/mentors' }
-        ]
-      },
-      { label: 'Company Verification', icon: <CheckCircle />, path: '/admin/company-verification' },
+      { label: 'Manage Students', icon: <Users />, path: '/admin/manage/students' },
+      { label: 'Manage Mentors', icon: <Users />, path: '/admin/manage/mentors' },
+      { label: 'Verify Companies', icon: <CheckCircle />, path: '/admin/company-verification' },
       { label: 'Reports', icon: <FileText />, path: '/admin/reports' },
       { label: 'Settings', icon: <Settings />, path: '/admin/settings' },
-      { label: 'Notifications', icon: <Bell />, path: '/admin/notifications' },
-      { label: 'Profile', icon: <User />, path: '/admin/profile' },
-      { label: 'Logout', icon: <LogOut />, path: '/logout', onClick: logout }
     ],
     mentor: [
-      { label: 'Dashboard', icon: <Home />, path: '/mentor/dashboard' },
-      { label: 'Assigned Students', icon: <Users />, path: '/mentor/students' },
+      { label: 'My Students', icon: <Users />, path: '/mentor/students' },
       { label: 'Evaluate Reports', icon: <FileText />, path: '/mentor/evaluate-reports' },
-      { label: 'Notifications', icon: <Bell />, path: '/mentor/notifications' },
-      { label: 'Profile', icon: <User />, path: '/mentor/profile' },
-      { label: 'Logout', icon: <LogOut />, path: '/logout', onClick: logout }
+      { label: 'Messages', icon: <MessageCircle />, path: '/mentor/messages' },
     ],
     student: [
-      { label: 'Dashboard', icon: <Home />, path: '/student/dashboard' },
       { label: 'Upload Reports', icon: <FileUp />, path: '/student/upload-reports' },
-      { label: 'Upload Certificates', icon: <Award />, path: '/student/upload-certificates' },
-      { label: 'Mentor Chat', icon: <MessageCircle />, path: '/student/mentor-chat' },
-      { label: 'Notifications', icon: <Bell />, path: '/student/notifications' },
-      { label: 'Profile', icon: <User />, path: '/student/profile' },
-      { label: 'Logout', icon: <LogOut />, path: '/logout', onClick: logout }
+      { label: 'Certificates', icon: <Award />, path: '/student/certificates' },
+      { label: 'Chat', icon: <MessageCircle />, path: '/student/chat' },
     ]
-  }
+  };
 
-  const navItems = navbarConfig[user?.userType] || []
+  const navItems = navbarConfig[user?.userType] || [];
+
+  const NavLink = ({ item, className, onClick }) => {
+    const isActive = pathname === item.path;
+    
+    return (
+      <Link 
+        href={item.path}
+        onClick={onClick}
+        className={cn(
+          "flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors",
+          isActive 
+            ? "bg-primary text-primary-foreground" 
+            : "hover:bg-secondary",
+          className
+        )}
+      >
+        {item.icon}
+        <span>{item.label}</span>
+      </Link>
+    );
+  };
+
+  const UserMenu = ({ className }) => (
+    <div className={cn("flex items-center gap-2", className)}>
+      <Button 
+        variant="ghost" 
+        size="icon"
+        className="relative"
+      >
+        <Bell className="h-5 w-5" />
+        <span className="absolute top-0 right-0 h-2 w-2 bg-destructive rounded-full" />
+      </Button>
+      
+      <Button
+        variant="ghost"
+        size="icon"
+        asChild
+      >
+        <Link href={`/${user?.userType}/profile`}>
+          <User className="h-5 w-5" />
+        </Link>
+      </Button>
+      
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={logout}
+      >
+        <LogOut className="h-5 w-5" />
+      </Button>
+    </div>
+  );
 
   return (
-    <nav className="bg-white shadow-md p-4">
-      <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          {navItems.map((item, index) => (
-            <div key={index} className="relative group">
-              {item.subItems ? (
-                <div className="dropdown">
-                  <button className="flex items-center space-x-2 hover:text-blue-600">
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </button>
-                  <div className="dropdown-menu hidden group-hover:block absolute bg-white shadow-lg rounded">
-                    {item.subItems.map((subItem, subIndex) => (
-                      <Link 
-                        key={subIndex} 
-                        href={subItem.path} 
-                        className="block px-4 py-2 hover:bg-gray-100"
-                      >
-                        {subItem.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <Link 
-                  href={item.path} 
-                  onClick={item.onClick}
-                  className="flex items-center space-x-2 hover:text-blue-600"
-                >
-                  {item.icon}
-                  <span>{item.label}</span>
-                </Link>
-              )}
-            </div>
-          ))}
+    <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-14 items-center">
+        
+        {/* Brand/Logo */}
+        <div className="mr-4 flex">
+          <Link href="/" className="font-semibold">
+          <img src="svvv.png" alt="" className='w-16 p-2 h-16 mx-auto'/>
+          </Link>
+        </div>
+
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex md:flex-1 md:items-center md:justify-between">
+          <div className="flex items-center gap-1">
+            {navItems.map((item) => (
+              <NavLink key={item.path} item={item} />
+            ))}
+          </div>
+          <UserMenu />
+        </div>
+
+        {/* Mobile Navigation */}
+        <div className="flex flex-1 items-center justify-end md:hidden">
+          <UserMenu className="mr-2" />
+          <Sheet open={isOpen} onOpenChange={setIsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-col gap-2 mt-4">
+                {navItems.map((item) => (
+                  <NavLink 
+                    key={item.path} 
+                    item={item} 
+                    onClick={() => setIsOpen(false)}
+                  />
+                ))}
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
     </nav>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

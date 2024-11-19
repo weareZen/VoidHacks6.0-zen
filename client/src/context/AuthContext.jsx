@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import jsCookie from 'js-cookie';
+import Loading from '@/components/Loading';
 
 const AuthContext = createContext();
 
@@ -62,7 +63,6 @@ export function AuthProvider({ children }) {
 
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
-      
       return true;
     } catch (error) {
       localStorage.removeItem('token');
@@ -81,7 +81,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: !!user }}>
-      {!loading ? children : <div>Loading...</div>}
+      {!loading ? children : <Loading />}
     </AuthContext.Provider>
   );
 }
