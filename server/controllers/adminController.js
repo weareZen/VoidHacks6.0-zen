@@ -53,7 +53,14 @@ exports.loginUser = async (req, res) => {
       expiresIn: "1h",
     });
 
-    res.status(200).json({ message: "Login successful.", token });
+    const user = {
+      name: admin.name,
+      email: admin.email,
+      phone_number: admin.phone_number,
+      userTypr: "admin"
+    }
+
+    res.status(200).json({ message: "Login successful.", token,userType:"admin", user });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error.", error });

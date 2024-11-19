@@ -87,6 +87,7 @@ exports.loginMentor = async (req, res) => {
         email: mentor.email,
         department: mentor.department,
         officeLocation: mentor.officeLocation,
+        userType: mentor.userType,
       },
       token,
     });
