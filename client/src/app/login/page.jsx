@@ -56,6 +56,7 @@ const LoginPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-2 text-center">
+        <img src="svvv.png" alt="" className='w-16 h-16 mx-auto'/>
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
           <CardDescription>Log in to manage your internship journey</CardDescription>
         </CardHeader>

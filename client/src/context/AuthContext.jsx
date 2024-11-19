@@ -1,7 +1,7 @@
 'use client'
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Loading from '@/components/Loading';
+import jsCookie from 'js-cookie';
 
 const AuthContext = createContext();
 
@@ -10,23 +10,16 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  // Initialize auth state
   useEffect(() => {
     const checkAuth = () => {
-      try {
-        // Get stored data
-        const token = localStorage.getItem('token');
-        const storedUser = localStorage.getItem('user');
+      const token = localStorage.getItem('token');
+      const storedUser = localStorage.getItem('user');
 
-        // Clear storage if data is invalid
-        if (!token || !storedUser || storedUser === 'undefined') {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          setUser(null);
-          return;
-        }
-
-        // Try to parse user data
+      if (!token || !storedUser || storedUser === 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        setUser(null);
+      } else {
         try {
           const parsedUser = JSON.parse(storedUser);
           if (parsedUser && typeof parsedUser === 'object') {
@@ -35,17 +28,12 @@ export function AuthProvider({ children }) {
             localStorage.removeItem('user');
             setUser(null);
           }
-        } catch (parseError) {
-          console.error('Failed to parse user data:', parseError);
+        } catch {
           localStorage.removeItem('user');
           setUser(null);
         }
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setUser(null);
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     checkAuth();
@@ -55,75 +43,51 @@ export function AuthProvider({ children }) {
     try {
       const response = await fetch(`http://localhost:5000/api/v1/${userType}/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
       });
 
       const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
+      if (!response.ok) throw new Error(data.message || 'Login failed');
 
-      // Store token first
       localStorage.setItem('token', data.token);
+      jsCookie.set('token', data.token, { path: '/' });
 
-      // Extract and store user data
-      const userData = data[userType] || data;
-      if (!userData) {
-        throw new Error('Invalid response format');
-      }
+      const userData = 
+        userType === 'student' ? data.student :
+        userType === 'mentor' ? data.mentor :
+        userType === 'admin' ? data.admin || data : null;
+
+      if (!userData) throw new Error('Invalid response format');
 
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
       
       return true;
     } catch (error) {
-      console.error('Login error:', error);
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       throw error;
     }
   };
 
-  const logout = async () => {
-    try {
-      // Clear cookie first
-      document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-      // Clear localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // Clear user state
-      setUser(null);
-      // Force a full page reload to trigger middleware
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
-
-  // Provide auth context
-  const value = {
-    user,
-    login,
-    logout,
-    loading,
-    isAuthenticated: !!user
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    jsCookie.remove('token', { path: '/' });
+    setUser(null);
+    router.push('/login');
   };
 
   return (
-    <AuthContext.Provider value={value}>
-      {!loading ? children : <Loading />}
+    <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: !!user }}>
+      {!loading ? children : <div>Loading...</div>}
     </AuthContext.Provider>
   );
 }
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
-}; 
+};
