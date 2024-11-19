@@ -1,90 +1,116 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { useAuth } from '@/context/AuthContext'
 import { 
-  Home, Users, CheckCircle, FileText, Settings, Bell, 
-  User, LogOut, FileUp, MessageCircle, Award 
+  Home, Users, FileText, Bell, 
+  User, LogOut, ChevronDown
 } from 'lucide-react'
 
 const Navbar = () => {
   const { user, logout } = useAuth()
+  const [activeDropdown, setActiveDropdown] = useState(null)
   
   const navbarConfig = {
     admin: [
-      { label: 'Dashboard', icon: <Home />, path: '/admin/dashboard' },
+      { label: 'Dashboard', icon: <Home size={18} />, path: '/admin/dashboard' },
       { 
         label: 'Manage Users', 
-        icon: <Users />, 
+        icon: <Users size={18} />, 
         subItems: [
-          { label: 'Students', path: '/admin/manage/students' },
-          { label: 'Mentors', path: '/admin/manage/mentors' }
+          { label: 'Students', path: '/admin/manageStudents' },
+          { label: 'Mentors', path: '/admin/manageMentors' }
         ]
       },
-      { label: 'Company Verification', icon: <CheckCircle />, path: '/admin/company-verification' },
-      { label: 'Reports', icon: <FileText />, path: '/admin/reports' },
-      { label: 'Settings', icon: <Settings />, path: '/admin/settings' },
-      { label: 'Notifications', icon: <Bell />, path: '/admin/notifications' },
-      { label: 'Profile', icon: <User />, path: '/admin/profile' },
-      { label: 'Logout', icon: <LogOut />, path: '/logout', onClick: logout }
+      { label: 'Reports', icon: <FileText size={18} />, path: '/admin/reports' },
+      { label: 'Notifications', icon: <Bell size={18} />, path: '/admin/notifications' },
+      { label: 'Profile', icon: <User size={18} />, path: '/admin/profile' },
+      { label: 'Logout', icon: <LogOut size={18} />, path: '/logout', onClick: logout }
     ],
     mentor: [
-      { label: 'Dashboard', icon: <Home />, path: '/mentor/dashboard' },
-      { label: 'Assigned Students', icon: <Users />, path: '/mentor/students' },
-      { label: 'Evaluate Reports', icon: <FileText />, path: '/mentor/evaluate-reports' },
-      { label: 'Notifications', icon: <Bell />, path: '/mentor/notifications' },
-      { label: 'Profile', icon: <User />, path: '/mentor/profile' },
-      { label: 'Logout', icon: <LogOut />, path: '/logout', onClick: logout }
+      { label: 'Dashboard', icon: <Home size={18} />, path: '/mentor/dashboard' },
+      { label: 'Students', icon: <Users size={18} />, path: '/mentor/students' },
+      { label: 'Reports', icon: <FileText size={18} />, path: '/mentor/evaluate-reports' },
+      { label: 'Notifications', icon: <Bell size={18} />, path: '/mentor/notifications' },
+      { label: 'Profile', icon: <User size={18} />, path: '/mentor/profile' },
+      { label: 'Logout', icon: <LogOut size={18} />, path: '/logout', onClick: logout }
     ],
     student: [
-      { label: 'Dashboard', icon: <Home />, path: '/student/dashboard' },
-      { label: 'Upload Reports', icon: <FileUp />, path: '/student/upload-reports' },
-      { label: 'Upload Certificates', icon: <Award />, path: '/student/upload-certificates' },
-      { label: 'Mentor Chat', icon: <MessageCircle />, path: '/student/mentor-chat' },
-      { label: 'Notifications', icon: <Bell />, path: '/student/notifications' },
-      { label: 'Profile', icon: <User />, path: '/student/profile' },
-      { label: 'Logout', icon: <LogOut />, path: '/logout', onClick: logout }
+      { label: 'Dashboard', icon: <Home size={18} />, path: '/student/dashboard' },
+      { label: 'Reports', icon: <FileText size={18} />, path: '/student/upload-reports' },
+      { label: 'Notifications', icon: <Bell size={18} />, path: '/student/notifications' },
+      { label: 'Profile', icon: <User size={18} />, path: '/student/profile' },
+      { label: 'Logout', icon: <LogOut size={18} />, path: '/logout', onClick: logout }
     ]
   }
 
   const navItems = navbarConfig[user?.userType] || []
 
   return (
-    <nav className="bg-white shadow-md p-4">
-      <div className="container mx-auto flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <nav className="bg-white border-b border-gray-200 shadow-sm">
+      <div className="container mx-auto flex justify-between items-center py-3">
+        {/* Logo */}
+        <div className="text-md font-bold text-gray-800">
+          Internship Portal
+        </div>
+
+        {/* Navigation Items */}
+        <div className="flex items-center space-x-5">
           {navItems.map((item, index) => (
-            <div key={index} className="relative group">
+            <div 
+              key={index} 
+              className="relative group"
+              onMouseEnter={() => item.subItems && setActiveDropdown(index)}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
               {item.subItems ? (
-                <div className="dropdown">
-                  <button className="flex items-center space-x-2 hover:text-blue-600">
+                <div className="relative">
+                  <button 
+                    className="flex items-center text-sm text-gray-700 
+                    hover:text-blue-600 transition-colors duration-200 
+                    space-x-1"
+                  >
                     {item.icon}
-                    <span>{item.label}</span>
+                    <span className="ml-1">{item.label}</span>
+                    <ChevronDown className="w-4 h-4 ml-1" />
                   </button>
-                  <div className="dropdown-menu hidden group-hover:block absolute bg-white shadow-lg rounded">
-                    {item.subItems.map((subItem, subIndex) => (
-                      <Link 
-                        key={subIndex} 
-                        href={subItem.path} 
-                        className="block px-4 py-2 hover:bg-gray-100"
-                      >
-                        {subItem.label}
-                      </Link>
-                    ))}
-                  </div>
+                  
+                  {activeDropdown === index && (
+                    <div 
+                      className="absolute top-full right-0 mt-2 
+                      bg-white shadow-lg rounded-md 
+                      border border-gray-200 overflow-hidden 
+                      min-w-[180px] z-50"
+                    >
+                      {item.subItems.map((subItem, subIndex) => (
+                        <Link 
+                          key={subIndex} 
+                          href={subItem.path} 
+                          className="block px-4 py-2 text-sm 
+                          text-gray-700 hover:bg-gray-100 
+                          hover:text-blue-600 transition-colors"
+                        >
+                          {subItem.label}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : (
                 <Link 
                   href={item.path} 
                   onClick={item.onClick}
-                  className="flex items-center space-x-2 hover:text-blue-600"
+                  className="flex items-center text-sm text-gray-700 
+                  hover:text-blue-600 transition-colors duration-200 
+                  space-x-1"
                 >
                   {item.icon}
-                  <span>{item.label}</span>
+                  <span className="ml-1">{item.label}</span>
                 </Link>
               )}
             </div>
           ))}
         </div>
+
       </div>
     </nav>
   )
