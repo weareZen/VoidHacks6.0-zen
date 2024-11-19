@@ -66,26 +66,18 @@ export function AuthProvider({ children }) {
         throw new Error(data.message || 'Login failed');
       }
 
-      // Store token
+      // Store token first
       localStorage.setItem('token', data.token);
-      document.cookie = `token=${data.token}; path=/`;
 
-      // Extract user data based on user type
-      let userData;
-      if (userType === 'student') {
-        userData = data.student;
-      } else if (userType === 'mentor') {
-        userData = data.mentor;
-      } else if (userType === 'admin') {
-        userData = data.admin || data; // Admin response is different
-      }
-
+      // Extract and store user data
+      const userData = data[userType] || data;
       if (!userData) {
         throw new Error('Invalid response format');
       }
 
       localStorage.setItem('user', JSON.stringify(userData));
       setUser(userData);
+      
       return true;
     } catch (error) {
       console.error('Login error:', error);
