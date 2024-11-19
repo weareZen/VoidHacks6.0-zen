@@ -1,21 +1,21 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { usePathname } from 'next/navigation';
 import {
   Home, Users, CheckCircle, FileText, Settings, 
   Bell, User, LogOut, FileUp, MessageCircle, Award,
   Menu, X
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '../components/ui/button';
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from "@/components/ui/sheet";
-import { cn } from '@/lib/utils';
+} from "../components/ui/sheet";
+import { cn } from '../lib/utils';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
