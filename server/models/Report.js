@@ -30,9 +30,9 @@ const reportSchema = new mongoose.Schema({
   },
   submissionDate: Date,
   attachments: [{
-    fileName: String,
-    fileUrl: String,
-    uploadDate: Date
+    url: String,
+    publicId: String,
+    fileName: String
   }],
   evaluation: {
     points: {
