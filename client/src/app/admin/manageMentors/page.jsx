@@ -1,6 +1,5 @@
 "use client"
 import React, { useState } from 'react';
-import Navbar from '../../../components/Navbar';
 
 
 const Button = ({ children, onClick, variant = 'primary', className = '' }) => {
@@ -104,7 +103,6 @@ const MentorManagement = () => {
 
   return (
     <>
-    <Navbar/>
     <div className="bg-[#F5F7FF] min-h-screen p-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">

@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from "react";
 import { X, Search } from "lucide-react";
-import Navbar from "../../../components/Navbar";
 
 const StudentManagement = () => {
   const [students, setStudents] = useState([
@@ -144,7 +143,6 @@ const StudentManagement = () => {
 
   return (
     <>
-      <Navbar />
       <div className="min-h-screen bg-white p-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
