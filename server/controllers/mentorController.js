@@ -199,3 +199,59 @@ exports.getPendingEvaluations = async (req, res) => {
     });
   }
 };
+
+// Evaluate Report
+exports.evaluateReport = async (req, res) => {
+  try {
+    const { reportId, evaluation, feedback } = req.body;
+    
+    // Implementation needed: Update report with evaluation
+    
+    res.status(200).json({ 
+      message: "Report evaluated successfully",
+      // Add evaluated report details
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error evaluating report", 
+      error: error.message 
+    });
+  }
+};
+
+// Create Assignment
+exports.createAssignment = async (req, res) => {
+  try {
+    const { title, description, deadline, studentIds } = req.body;
+    
+    // Implementation needed: Create new assignment
+    
+    res.status(201).json({ 
+      message: "Assignment created successfully",
+      // Add created assignment details
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error creating assignment", 
+      error: error.message 
+    });
+  }
+};
+
+// Get Notifications
+exports.getNotifications = async (req, res) => {
+  const { mentorId } = req.params;
+
+  try {
+    // Implementation needed: Fetch notifications for mentor
+    
+    res.status(200).json({
+      notifications: []
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error retrieving notifications", 
+      error: error.message 
+    });
+  }
+};
