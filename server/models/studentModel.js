@@ -77,6 +77,12 @@ const studentSchema = new mongoose.Schema({
     },
   },
 
+  // Internal Mentor (Assigned by Admin)
+  internalMentor: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Mentor", // References the Mentor model
+  },
+
   // Progress Tracking
   progress: {
     totalReports: {

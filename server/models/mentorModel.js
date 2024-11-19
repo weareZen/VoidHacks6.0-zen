@@ -42,10 +42,14 @@ const mentorSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-
+  password: {
+    type: String,
+    required: true,
+  },
+  
   // Timestamps
   createdAt: {
-    type: Date,
+    type: Date, 
     default: Date.now,
   },
   updatedAt: {

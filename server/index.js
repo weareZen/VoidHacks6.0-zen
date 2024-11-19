@@ -24,6 +24,8 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/v1/admin', require("./routes/adminRoute")); 
+app.use('/api/v1/student', require("./routes/studentRoute"));
+app.use('/api/v1/mentor', require("./routes/mentorRoute"));
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
