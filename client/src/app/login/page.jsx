@@ -1,44 +1,102 @@
 'use client'
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/context/AuthContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useRouter } from 'next/navigation';
 
 const LoginPage = () => {
-  const handleSubmit = (e) => {
+  const { login, user, loading } = useAuth();
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [userType, setUserType] = useState('student');
+
+  useEffect(() => {
+    if (user) {
+      router.push('/');
+    }
+  }, [user, router]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Redirecting...
+      </div>
+    );
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
+    setError('');
+    setIsLoading(true);
+
+    try {
+      await login(userType, formData);
+    } catch (error) {
+      setError(error.message || 'Failed to login');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-2 text-center">
-          <div className="flex justify-center mb-4">
-            <img 
-              src="/svvv.png" 
-              alt="System Logo" 
-              className="h-16 w-16"
-            />
-          </div>
           <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
-          <CardDescription>
-            Log in to manage your internship journey
-          </CardDescription>
+          <CardDescription>Log in to manage your internship journey</CardDescription>
         </CardHeader>
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email or Username</Label>
+              <Label htmlFor="userType">User Type</Label>
+              <select
+                id="userType"
+                value={userType}
+                onChange={(e) => setUserType(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              >
+                <option value="student">Student</option>
+                <option value="mentor">Mentor</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
               <Input 
                 id="email"
-                type="text"
-                placeholder="Enter your email or username"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Enter your email"
                 required
               />
             </div>
@@ -48,38 +106,28 @@ const LoginPage = () => {
               <Input
                 id="password"
                 type="password"
+                value={formData.password}
+                onChange={handleChange}
                 placeholder="Enter your password"
                 required
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox id="remember" />
-                <Label htmlFor="remember" className="text-sm">Remember Me</Label>
+            {error && (
+              <div className="text-red-500 text-sm bg-red-50 p-2 rounded">
+                {error}
               </div>
-              <Button variant="link" className="text-sm p-0">
-                Forgot Password?
-              </Button>
-            </div>
+            )}
 
-            <Button type="submit" className="w-full">
-              Login
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Logging in...' : 'Login'}
             </Button>
           </form>
         </CardContent>
-
-        <CardFooter className="flex flex-col space-y-2 text-center text-sm text-zinc-500">
-          <div className="flex items-center justify-center space-x-1">
-            <span>Need help?</span>
-            <Button variant="link" className="p-0">Contact Support</Button>
-          </div>
-          <div className="flex items-center justify-center space-x-2">
-            <Button variant="link" className="p-0">Privacy Policy</Button>
-            <Separator orientation="vertical" className="h-4" />
-            <Button variant="link" className="p-0">Terms of Use</Button>
-          </div>
-        </CardFooter>
       </Card>
     </div>
   );
