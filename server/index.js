@@ -7,6 +7,8 @@ const { createServer } = require('http');
 const { Server } = require('socket.io'); 
 const initializeScheduler = require('./utils/scheduler');
 const studentRoutes = require('./routes/studentRoute');
+const adminRoutes = require('./routes/adminRoute');
+const mentorRoutes = require('./routes/mentorRoute');
 
 dotenv.config();
 const port = process.env.PORT || 5000;
@@ -42,12 +44,11 @@ app.get('/', (req, res) => {
   res.send('Server is running ...');
 });
 
-app.use('/api/v1/admin', require("./routes/adminRoute")); 
-app.use('/api/v1/student', require("./routes/studentRoute"));
-app.use('/api/v1/mentor', require("./routes/mentorRoute"));
+app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/mentors', mentorRoutes);
+app.use('/api/v1/students', studentRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/reports', require('./routes/reportRoute'));
-app.use('/api/v1/students', studentRoutes);
 
 // Initialize scheduler
 initializeScheduler();

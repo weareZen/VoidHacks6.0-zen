@@ -3,9 +3,10 @@ const {
   registerUser,
   loginUser,
   assignMentorToStudent,
-  getAllMentorAssignments
+  getAllMentorAssignments,
+  getAdminProfile
 } = require("../controllers/adminController");
-const { adminAuth } = require("../middleware/authMiddleware");
+const { adminAuth, authMiddleware } = require("../middleware/authMiddleware");
 
 const router = express.Router();
 
@@ -16,5 +17,8 @@ router.post("/login", loginUser);
 // Protected routes (require admin authentication)
 router.post("/assign-mentor", adminAuth, assignMentorToStudent);
 router.get("/mentor-assignments", adminAuth, getAllMentorAssignments);
+
+// Add profile route
+router.get("/profile/:id", authMiddleware, getAdminProfile);
 
 module.exports = router;

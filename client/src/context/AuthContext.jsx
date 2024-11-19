@@ -8,6 +8,13 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(() => {
+    // Check if we have a token in localStorage
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('token');
+    }
+    return null;
+  });
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -40,58 +47,34 @@ export function AuthProvider({ children }) {
     checkAuth();
   }, []);
 
-  const login = async (userType, credentials) => {
-    try {
-      const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/${userType}/login`;
-      
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-        credentials: 'include'
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to login');
-      }
-
-      if (!data.token || !data.user) {
-        throw new Error('Invalid response format from server');
-      }
-
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      jsCookie.set('token', data.token, { expires: 1 });
-
-      setUser(data.user);
-      return true;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    }
+  const login = async (userData, authToken) => {
+    setUser(userData);
+    setToken(authToken);
+    localStorage.setItem('token', authToken);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    jsCookie.remove('token', { path: '/' });
     setUser(null);
+    setToken(null);
+    localStorage.removeItem('token');
+    jsCookie.remove('token', { path: '/' });
     router.push('/login');
   };
 
+  const value = {
+    user,
+    token,
+    login,
+    logout
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={value}>
       {!loading ? children : <Loading />}
     </AuthContext.Provider>
   );
 }
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within an AuthProvider');
-  return context;
-};
+export function useAuth() {
+  return useContext(AuthContext);
+}

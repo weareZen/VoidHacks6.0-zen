@@ -139,3 +139,34 @@ exports.getAllMentorAssignments = async (req, res) => {
     });
   }
 };
+
+// Add this new method
+exports.getAdminProfile = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const admin = await Admin.findById(id).select('-password');
+
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    res.status(200).json({
+      message: "Admin profile retrieved successfully",
+      admin: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        phone_number: admin.phone_number,
+        department: admin.department,
+        role: admin.role,
+        joiningDate: admin.joiningDate
+      }
+    });
+  } catch (error) {
+    console.error('Error in getAdminProfile:', error);
+    res.status(500).json({ 
+      message: "Error retrieving admin profile", 
+      error: error.message 
+    });
+  }
+};

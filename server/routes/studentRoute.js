@@ -19,4 +19,7 @@ router.get("/reports/:studentId", authMiddleware, studentController.getStudentRe
 // Assign Internal Mentor
 router.put("/:id/assign-mentor", studentController.assignInternalMentor);
 
+// Update the existing route to be more specific for profile
+router.get('/profile/:id', authMiddleware, studentController.getStudentById);
+
 module.exports = router;

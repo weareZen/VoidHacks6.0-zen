@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const mentorController = require("../controllers/mentorController");
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 // Register Mentor
 router.post("/register", mentorController.registerMentor);
@@ -12,10 +13,10 @@ router.post("/login", mentorController.loginMentor);
 router.get("/all", mentorController.getAllMentors);
 
 // Get a particular Mentor by ID
-router.get("/:mentorId", mentorController.getMentorById);
+router.get("/profile/:id", authMiddleware, mentorController.getMentorById);
 
 // Add new route for assigned students
-router.get("/:mentorId/assigned-students", mentorController.getAssignedStudents);
+router.get("/:mentorId/assigned-students", authMiddleware, mentorController.getAssignedStudents);
 
 // Add these new routes
 router.get("/:mentorId/dashboard-stats", mentorController.getDashboardStats);
