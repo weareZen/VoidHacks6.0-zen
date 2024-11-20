@@ -23,8 +23,9 @@ export default function Home() {
 
   const getDashboardComponent = () => {
     if (isLoading) return <DashboardSkeleton />;
+    if (!user) return null;
 
-    switch (user?.userType) {
+    switch (user.userType) {
       case 'student':
         return <StudentDashboard />;
       case 'mentor':
@@ -32,7 +33,8 @@ export default function Home() {
       case 'admin':
         return <AdminDashboard />;
       default:
-        return redirect('/login');
+        window.location.replace('/login');
+        return null;
     }
   };
 

@@ -38,32 +38,49 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log('Admin login attempt:', { email });
 
     const admin = await Admin.findOne({ email });
     if (!admin) {
-      return res.status(404).json({ message: "User not found." });
+      return res.status(404).json({ message: "Admin not found" });
     }
 
-    const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid credentials." });
+    const isPasswordValid = await bcrypt.compare(password, admin.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign({ id: admin._id }, JWT_SECRET, {
-      expiresIn: "1h",
-    });
+    const token = jwt.sign(
+      { id: admin._id, userType: 'admin' },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     const user = {
-      name: admin.name,
+      id: admin._id,
+      firstName: admin.name,
+      lastName: '',
       email: admin.email,
-      phone_number: admin.phone_number,
-      userType: "admin"
-    }
+      userType: 'admin',
+      phone_number: admin.phone_number
+    };
 
-    res.status(200).json({ message: "Login successful.", token,userType:"admin", user });
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+
+    res.status(200).json({
+      message: "Login successful",
+      token,
+      user
+    });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Internal server error.", error });
+    console.error('Admin login error:', error);
+    res.status(500).json({ message: "Error logging in", error: error.message });
   }
 };
 

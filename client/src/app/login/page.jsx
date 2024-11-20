@@ -39,17 +39,18 @@ const LoginPage = () => {
       }
 
       const endpoints = {
-        student: 'students',
-        mentor: 'mentors',
-        admin: 'admin'
+        student: 'students/login',
+        mentor: 'mentors/login',
+        admin: 'admin/login'
       };
 
-      console.log('Attempting login:', {
+      console.log('Login attempt:', {
+        userType,
         endpoint: endpoints[userType],
         email: formData.email
       });
 
-      const response = await fetch(`http://localhost:5000/api/v1/${endpoints[userType]}/login`, {
+      const response = await fetch(`http://localhost:5000/api/v1/${endpoints[userType]}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,14 +60,20 @@ const LoginPage = () => {
       });
 
       const data = await response.json();
-      console.log('Login response:', data);
+      console.log('Server response:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Failed to login');
       }
 
+      if (!data.user || !data.token) {
+        throw new Error('Invalid response from server');
+      }
+
       await login(data.user, data.token);
-      router.push('/');
+      
+      // Force a hard redirect after successful login
+      window.location.href = '/';
     } catch (error) {
       console.log('Login error:', error);
       setError(error.message || 'Failed to login. Please check your credentials.');

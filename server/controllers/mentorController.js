@@ -60,40 +60,51 @@ exports.registerMentor = async (req, res) => {
 
 // Login Mentor
 exports.loginMentor = async (req, res) => {
-  const { email, password } = req.body;
-
   try {
-    // Find mentor by email
+    const { email, password } = req.body;
+    console.log('Mentor login attempt:', { email });
+
     const mentor = await Mentor.findOne({ email });
     if (!mentor) {
       return res.status(404).json({ message: "Mentor not found" });
     }
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, mentor.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    const isPasswordValid = await bcrypt.compare(password, mentor.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate JWT token
-    const token = generateToken(mentor);
+    const token = jwt.sign(
+      { id: mentor._id, userType: 'mentor' },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     const user = {
       id: mentor._id,
       firstName: mentor.firstName,
       lastName: mentor.lastName,
       email: mentor.email,
-      userType: 'mentor'
+      userType: 'mentor',
+      department: mentor.department
     };
 
-    // Respond with mentor data and token
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+
     res.status(200).json({
-      message: "Login successful", 
+      message: "Login successful",
       token,
       user
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error", error });
+    console.error('Mentor login error:', error);
+    res.status(500).json({ message: "Error logging in", error: error.message });
   }
 };
 
