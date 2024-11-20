@@ -18,39 +18,56 @@ import { DashboardSkeleton } from '../ui/loading';
 import ReportEvaluation from '../ReportEvaluation';
 import ReportAnalytics from '../ReportAnalytics';
 import DeadlineNotifications from '../DeadlineNotifications';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../../components/ui/dialog";
+import { useToast } from "../../components/hooks/use-toast";
 
 export default function MentorDashboard() {
   const { user } = useAuth();
   const [mentorStats, setMentorStats] = useState(null);
   const [reports, setReports] = useState({ pending: [], all: [] });
+  const [assignedStudents, setAssignedStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showEvaluationModal, setShowEvaluationModal] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchMentorData = async () => {
       try {
         if (!user?.id) return;
 
-        const [statsResponse, reportsResponse] = await Promise.all([
-          fetch(`http://localhost:5000/api/v1/mentor/${user.id}/dashboard-stats`, {
+        const [statsResponse, reportsResponse, studentsResponse] = await Promise.all([
+          fetch(`${process.env.NEXT_APP_API_URL || 'http://localhost:5000/api/v1'}/mentors/${user.id}/dashboard-stats`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           }),
-          fetch(`http://localhost:5000/api/v1/reports/mentor/${user.id}`, {
+          fetch(`${process.env.NEXT_APP_API_URL || 'http://localhost:5000/api/v1'}/reports/mentor/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }),
+          fetch(`${process.env.NEXT_APP_API_URL || 'http://localhost:5000/api/v1'}/mentors/${user.id}/assigned-students`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           })
         ]);
 
-        if (!statsResponse.ok || !reportsResponse.ok) {
+        if (!statsResponse.ok || !reportsResponse.ok || !studentsResponse.ok) {
           throw new Error('Failed to fetch data');
         }
 
-        const [statsData, reportsData] = await Promise.all([
+        const [statsData, reportsData, studentsData] = await Promise.all([
           statsResponse.json(),
-          reportsResponse.json()
+          reportsResponse.json(),
+          studentsResponse.json()
         ]);
 
         setMentorStats(statsData);
@@ -58,6 +75,7 @@ export default function MentorDashboard() {
           pending: reportsData.pendingReports || [],
           all: reportsData.allReports || []
         });
+        setAssignedStudents(studentsData.assignedStudents || []);
       } catch (error) {
         console.error('Error fetching data:', error);
         setError(error.message);
@@ -68,6 +86,45 @@ export default function MentorDashboard() {
 
     fetchMentorData();
   }, [user?.id]);
+
+  const handleEvaluationComplete = async () => {
+    try {
+      // Refresh the reports data
+      const reportsResponse = await fetch(
+        `${process.env.NEXT_APP_API_URL || 'http://localhost:5000/api/v1'}/reports/mentor/${user.id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+
+      if (!reportsResponse.ok) {
+        throw new Error('Failed to fetch updated reports');
+      }
+
+      const reportsData = await reportsResponse.json();
+      setReports({
+        pending: reportsData.pendingReports || [],
+        all: reportsData.allReports || []
+      });
+
+      setShowEvaluationModal(false);
+      setSelectedReport(null);
+      
+      toast({
+        title: "Success",
+        description: "Report evaluated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating reports:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update reports",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (error) return <div>Error loading dashboard: {error}</div>;
   if (isLoading) return <Loading />;
@@ -144,7 +201,7 @@ export default function MentorDashboard() {
           <CardContent>
             <div className="space-y-4">
               {assignedStudents.map((student) => (
-                <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div key={student._id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="space-y-1">
                     <p className="font-medium">{student.name}</p>
                     <p className="text-sm text-muted-foreground">EN: {student.enrollmentNumber}</p>
@@ -178,7 +235,15 @@ export default function MentorDashboard() {
                     <p className="text-sm text-muted-foreground">{report.studentName}</p>
                     <p className="text-sm text-muted-foreground">Submitted: {report.submissionDate}</p>
                   </div>
-                  <Button size="sm">Evaluate</Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      setSelectedReport(report);
+                      setShowEvaluationModal(true);
+                    }}
+                  >
+                    Evaluate
+                  </Button>
                 </div>
               ))}
             </div>
@@ -213,6 +278,20 @@ export default function MentorDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={showEvaluationModal} onOpenChange={setShowEvaluationModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Evaluate Report</DialogTitle>
+          </DialogHeader>
+          {selectedReport && (
+            <ReportEvaluation 
+              report={selectedReport} 
+              onEvaluated={handleEvaluationComplete} 
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 } 

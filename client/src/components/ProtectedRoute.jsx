@@ -10,18 +10,21 @@ export default function ProtectedRoute({ children }) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
-      window.location.href = '/login';
+    let timeoutId;
+    
+    if (!user && !loading) {
+      timeoutId = setTimeout(() => {
+        window.location.href = '/login';
+      }, 500);
     }
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
   }, [user, loading]);
 
-  if (loading) {
-    return <Loading />;
-  }
-
-  if (!user) {
-    return null;
-  }
+  if (loading) return <Loading />;
+  if (!user) return null;
 
   return <>{children}</>;
 } 
