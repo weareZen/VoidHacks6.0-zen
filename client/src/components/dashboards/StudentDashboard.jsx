@@ -38,7 +38,7 @@ export default function StudentDashboard() {
       const data = await response.json();
       setStudentReports(data);
     } catch (error) {
-      console.error('Error fetching reports:', error);
+      console.log('Error fetching reports:', error);
     } finally {
       setIsLoading(false);
     }

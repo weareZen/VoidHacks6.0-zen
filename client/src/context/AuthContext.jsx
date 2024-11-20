@@ -42,7 +42,7 @@ export function AuthProvider({ children }) {
 
   const login = async (userType, credentials) => {
     try {
-      const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/${userType}/login`;
+      const endpoint = `http://localhost:5000/api/v1/${userType}/login`;
       
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -70,7 +70,7 @@ export function AuthProvider({ children }) {
       setUser(data.user);
       return true;
     } catch (error) {
-      console.error('Login error:', error);
+      console.log('Login error:', error);
       throw error;
     }
   };
@@ -79,8 +79,8 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     jsCookie.remove('token', { path: '/' });
-    setUser(null);
     router.push('/login');
+    setUser(null);
   };
 
   return (

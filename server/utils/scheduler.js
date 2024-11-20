@@ -20,7 +20,7 @@ const initializeScheduler = () => {
       // Check for overdue reports
       await checkOverdueReports();
     } catch (error) {
-      console.error('Scheduler error:', error);
+      console.log('Scheduler error:', error);
     }
   });
 };

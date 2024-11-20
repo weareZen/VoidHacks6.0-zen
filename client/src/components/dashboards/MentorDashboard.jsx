@@ -60,7 +60,7 @@ export default function MentorDashboard() {
         setPendingReports(reports.pendingReports);
         setAllReports(reports.allReports);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.log('Error fetching data:', error);
       } finally {
         setIsDataLoading(false);
       }

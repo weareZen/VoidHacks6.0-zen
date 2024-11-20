@@ -48,7 +48,7 @@ export default function NotificationDropdown() {
       setNotifications(data);
       setUnreadCount(data.filter(n => !n.read).length);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.log('Error fetching notifications:', error);
     } finally {
       setLoading(false);
     }

@@ -33,7 +33,7 @@ const UserProfile = () => {
               <User size={24} className="text-blue-500 mr-3" />
               <div>
                 <p className="text-sm font-medium text-gray-600">Name</p>
-                <p className="text-lg font-semibold text-gray-800">{user.user.name}</p>
+                <p className="text-lg font-semibold text-gray-800">{user.firstName + " " + user.lastName}</p>
               </div>
             </div>
 
@@ -42,7 +42,7 @@ const UserProfile = () => {
               <Mail size={24} className="text-green-500 mr-3" />
               <div>
                 <p className="text-sm font-medium text-gray-600">Email</p>
-                <p className="text-lg font-semibold text-gray-800">{user.user.email}</p>
+                <p className="text-lg font-semibold text-gray-800">{user.email}</p>
               </div>
             </div>
 

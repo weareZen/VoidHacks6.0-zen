@@ -28,7 +28,7 @@ exports.registerUser = async (req, res) => {
     await admin.save();
     res.status(201).json({ message: "User registered successfully." });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     res.status(500).json({ message: "Internal server error.", error });
   }
 };
@@ -62,7 +62,7 @@ exports.loginUser = async (req, res) => {
 
     res.status(200).json({ message: "Login successful.", token,userType:"admin", user });
   } catch (error) {
-    console.error(error);
+    console.log(error);
     res.status(500).json({ message: "Internal server error.", error });
   }
 };
@@ -112,7 +112,7 @@ exports.assignMentorToStudent = async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error in assignMentorToStudent:', error);
+    console.log('Error in assignMentorToStudent:', error);
     res.status(500).json({
       message: "Error assigning mentor to student",
       error: error.message
@@ -132,7 +132,7 @@ exports.getAllMentorAssignments = async (req, res) => {
       assignments: students
     });
   } catch (error) {
-    console.error('Error in getAllMentorAssignments:', error);
+    console.log('Error in getAllMentorAssignments:', error);
     res.status(500).json({
       message: "Error retrieving mentor assignments",
       error: error.message

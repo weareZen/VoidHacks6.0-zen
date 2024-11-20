@@ -72,7 +72,7 @@ export default function AdminDashboard() {
         await new Promise(resolve => setTimeout(resolve, 2000));
         setIsDataLoading(false);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.log('Error fetching data:', error);
         setIsDataLoading(false);
       }
     };
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
       setPendingApprovals(data.pendingApprovals);
       setRecentActivities(data.recentActivities);
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.log('Error fetching dashboard data:', error);
     } finally {
       setIsDataLoading(false);
     }

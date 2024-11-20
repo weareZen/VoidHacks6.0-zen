@@ -147,7 +147,7 @@ exports.getAssignedStudents = async (req, res) => {
       assignedStudents: mentor.assignedStudents
     });
   } catch (error) {
-    console.error('Error in getAssignedStudents:', error);
+    console.log('Error in getAssignedStudents:', error);
     res.status(500).json({ 
       message: "Error retrieving assigned students", 
       error: error.message 

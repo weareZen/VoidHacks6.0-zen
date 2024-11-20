@@ -44,7 +44,7 @@ const LoginPage = () => {
         router.refresh();
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.log('Login error:', error);
       setError(error.message || 'Failed to login. Please check your credentials.');
     } finally {
       setIsLoading(false);
