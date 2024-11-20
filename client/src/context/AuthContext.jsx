@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('token');
+      console.log('Token:', token);
       const storedUser = localStorage.getItem('user');
 
       if (!token || !storedUser || storedUser === 'undefined') {
@@ -93,6 +94,11 @@ export function AuthProvider({ children }) {
       // First clear all storage
       localStorage.removeItem('token');
       localStorage.removeItem('user');
+
+      // Clear all auth-related data from localStorage
+      jsCookie.remove('token',{path: '/'});
+      localStorage.clear();
+
       sessionStorage.clear();
       
       // Reset state

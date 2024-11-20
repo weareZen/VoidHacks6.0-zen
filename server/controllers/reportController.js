@@ -277,7 +277,7 @@ exports.checkAndCreateDueReports = async (studentId) => {
       });
     }
   } catch (error) {
-    console.error('Error creating due reports:', error);
+    console.log('Error creating due reports:', error);
   }
 };
 
@@ -303,7 +303,7 @@ exports.checkOverdueReports = async () => {
       );
     }
   } catch (error) {
-    console.error('Error checking overdue reports:', error);
+    console.log('Error checking overdue reports:', error);
   }
 };
 

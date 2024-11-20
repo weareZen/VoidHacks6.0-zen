@@ -19,6 +19,7 @@ import { cn } from '../lib/utils';
 import NotificationDropdown from '../components/NotificationDropdown';
 
 const Navbar = () => {
+  
   const { user, logout } = useAuth();
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);

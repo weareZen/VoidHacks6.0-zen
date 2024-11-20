@@ -1,5 +1,6 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
+import axios from 'axios';
 
 
 const Button = ({ children, onClick, variant = 'primary', className = '' }) => {
@@ -54,24 +55,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
 };
 
 const MentorManagement = () => {
-  const [mentors, setMentors] = useState([
-    {
-      id: '1',
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      department: 'Computer Science',
-      assignedStudents: [{ id: 's1', name: 'Alice Smith' }]
-    },
-    {
-      id: '2', 
-      firstName: 'Jane', 
-      lastName: 'Smith',
-      email: 'jane.smith@example.com',
-      department: 'Data Science',
-      assignedStudents: [{ id: 's2', name: 'Bob Johnson' }]
-    }
-  ]);
+  const [mentors, setMentors] = useState([]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMentor, setSelectedMentor] = useState(null);
@@ -100,6 +84,21 @@ const MentorManagement = () => {
     setIsCreateModalOpen(false);
     setNewMentor({ firstName: '', lastName: '', email: '', department: '' });
   };
+
+  useEffect(() => {
+    const fetchMentors = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/v1/mentors/all");
+        setMentors(response.data);
+        console.log(response.data);
+      } catch (error) {
+        console.error("Error fetching mentors:", error);
+        alert("Failed to fetch mentors.");
+      }
+    };
+
+    fetchMentors();
+  }, []);
 
   return (
     <>
