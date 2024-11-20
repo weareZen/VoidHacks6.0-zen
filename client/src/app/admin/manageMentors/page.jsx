@@ -73,16 +73,33 @@ const MentorManagement = () => {
       .includes(searchTerm.toLowerCase())
   );
 
-  const handleCreateMentor = () => {
+  const handleCreateMentor = async () => {
     const newMentorEntry = {
       ...newMentor,
       id: String(mentors.length + 1),
-      assignedStudents: []
+      assignedStudents: [],
     };
-    
-    setMentors([...mentors, newMentorEntry]);
-    setIsCreateModalOpen(false);
-    setNewMentor({ firstName: '', lastName: '', email: '', department: '' });
+  
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/v1/mentors/register",
+        newMentorEntry
+      );
+  
+      if (response.status === 201) {
+        setMentors((prevMentors) => [...prevMentors, response.data]); // Safe state update
+        setIsCreateModalOpen(false);
+        alert("mentor created successfully!");
+      } else {
+        alert("Failed to create mentor. Please try again.");
+      }
+    } catch (error) {
+      console.log("Error creating mentor:", error);
+      alert(
+        error.response?.data?.message ||
+          "An unexpected error occurred while creating the mentor."
+      );
+    }
   };
 
   useEffect(() => {
@@ -124,7 +141,7 @@ const MentorManagement = () => {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredMentors.map(mentor => (
             <div 
-              key={mentor.id} 
+              key={mentor._id} 
               onClick={() => setSelectedMentor(mentor)}
               className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer"
             >
@@ -175,7 +192,7 @@ const MentorManagement = () => {
                 <p><strong>Assigned Students:</strong></p>
                 <ul className="list-disc pl-5">
                   {selectedMentor.assignedStudents.map(student => (
-                    <li key={student.id}>{student.name}</li>
+                    <li key={student.id}>{student.firstName + " " + student.lastName}</li>
                   ))}
                 </ul>
               </div>

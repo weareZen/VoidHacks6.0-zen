@@ -111,8 +111,14 @@ exports.loginMentor = async (req, res) => {
 // Get All Mentors
 exports.getAllMentors = async (req, res) => {
   try {
-    const mentors = await Mentor.find();
-    res.status(200).json(mentors);
+    const mentors = await Mentor.find()
+      .populate({
+        path: 'assignedStudents', // Populate the 'assignedStudents' field
+        select: 'firstName lastName email phoneNumber' // Specify which fields to return
+      })
+      .exec(); // Execute the query
+
+    res.status(200).json(mentors); // Return
   } catch (error) {
     res.status(500).json({ message: "Server error", error });
   }
