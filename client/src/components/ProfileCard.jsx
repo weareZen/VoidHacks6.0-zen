@@ -21,7 +21,6 @@ export default function ProfileCard({ user }) {
         const baseUrl = 'http://localhost:5000/api/v1';
         let endpoint = '';
         
-        // Updated endpoints to match server routes
         switch (user?.userType) {
           case 'student':
             endpoint = `${baseUrl}/students/profile/${user.id}`;
@@ -36,10 +35,7 @@ export default function ProfileCard({ user }) {
             throw new Error('Invalid user type');
         }
 
-        console.log('Fetching from endpoint:', endpoint); // Debug log
-
         const response = await fetch(endpoint, {
-          method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
@@ -52,7 +48,7 @@ export default function ProfileCard({ user }) {
         }
         
         const data = await response.json();
-        setUserData(data.student || data.mentor || data.admin);
+        setUserData(data.mentor || data.student || data.admin);
       } catch (error) {
         console.log('Error fetching user data:', error);
       } finally {
@@ -81,11 +77,13 @@ export default function ProfileCard({ user }) {
     ];
 
     const mentorFields = [
-      { icon: <Building />, label: 'Department', value: userData?.department },
-      { icon: <MapPin />, label: 'Office Location', value: userData?.officeLocation },
-      { icon: <Award />, label: 'Specialization', value: userData?.specialization },
-      { icon: <Users />, label: 'Students Assigned', value: userData?.assignedStudents?.length },
-      { icon: <Calendar />, label: 'Joining Date', value: formatDate(userData?.joiningDate) },
+      { icon: <User />, label: 'Name', value: `${userData?.firstName} ${userData?.lastName}` },
+      { icon: <Mail />, label: 'Email', value: userData?.email },
+      { icon: <Phone />, label: 'Phone', value: userData?.phoneNumber || 'Not Set' },
+      { icon: <Building />, label: 'Department', value: userData?.department || 'Not Set' },
+      { icon: <MapPin />, label: 'Office Location', value: userData?.officeLocation || 'Not Set' },
+      { icon: <Users />, label: 'Students Assigned', value: userData?.assignedStudents?.length || 0 },
+      { icon: <Calendar />, label: 'Joined Date', value: formatDate(userData?.createdAt) },
     ];
 
     const adminFields = [
@@ -105,6 +103,10 @@ export default function ProfileCard({ user }) {
         throw new Error('Invalid user type');
     }
   };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <Card className="w-full max-w-3xl mx-auto">

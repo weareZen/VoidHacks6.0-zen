@@ -32,7 +32,7 @@ const Navbar = () => {
       { label: 'Settings', icon: <Settings />, path: '/admin/settings' },
     ],
     mentor: [
-      { label: 'My Students', icon: <Users />, path: '/mentor/students' },
+      { label: 'Profile', icon: <Users />, path: '/mentor/profile' },
       { label: 'Evaluate Reports', icon: <FileText />, path: '/mentor/evaluate-reports' },
       { label: 'Messages', icon: <MessageCircle />, path: '/mentor/messages' },
     ],
