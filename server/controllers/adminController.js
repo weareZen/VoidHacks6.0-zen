@@ -57,7 +57,7 @@ exports.loginUser = async (req, res) => {
       name: admin.name,
       email: admin.email,
       phone_number: admin.phone_number,
-      userTypr: "admin"
+      userType: "admin"
     }
 
     res.status(200).json({ message: "Login successful.", token,userType:"admin", user });

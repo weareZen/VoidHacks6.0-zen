@@ -105,6 +105,14 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
   if (isLoading) return <Loading />;
   if (isDataLoading) return <DashboardSkeleton />;
 
@@ -112,9 +120,18 @@ export default function AdminDashboard() {
     <div className="container mx-auto p-6 space-y-6">
       {/* Welcome Banner */}
       <Card className="bg-primary text-primary-foreground">
-        <CardHeader>
-          <CardTitle className="text-2xl">Welcome, {user?.firstName}!</CardTitle>
-          <p className="text-lg opacity-90">Role: Administrator</p>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-2xl">Welcome, {user?.firstName}!</CardTitle>
+            <p className="text-lg opacity-90">Role: Administrator</p>
+          </div>
+          <Button 
+            variant="secondary" 
+            onClick={handleLogout}
+            className="ml-auto"
+          >
+            Logout
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-4 gap-4 mt-2">
