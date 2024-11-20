@@ -38,11 +38,35 @@ const LoginPage = () => {
         throw new Error('Please fill in all fields');
       }
 
-      const result = await login(userType, formData);
-      if (result) {
-        router.push('/');
-        router.refresh();
+      const endpoints = {
+        student: 'students',
+        mentor: 'mentors',
+        admin: 'admin'
+      };
+
+      console.log('Attempting login:', {
+        endpoint: endpoints[userType],
+        email: formData.email
+      });
+
+      const response = await fetch(`http://localhost:5000/api/v1/${endpoints[userType]}/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      console.log('Login response:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to login');
       }
+
+      await login(data.user, data.token);
+      router.push('/');
     } catch (error) {
       console.log('Login error:', error);
       setError(error.message || 'Failed to login. Please check your credentials.');

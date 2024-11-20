@@ -20,7 +20,10 @@ export default function StudentDashboard() {
   useEffect(() => {
     const fetchStudentData = async () => {
       try {
-        if (!user?.id) return;
+        if (!user?.id) {
+          setIsLoading(false);
+          return;
+        }
 
         const [reportsResponse, studentResponse] = await Promise.all([
           fetch(`http://localhost:5000/api/v1/reports/student/${user.id}`, {
@@ -44,10 +47,10 @@ export default function StudentDashboard() {
           studentResponse.json()
         ]);
 
-        setStudentReports(reportsData.reports);
+        setStudentReports(reportsData.reports || []);
         setStudentData(studentData.student);
       } catch (error) {
-        console.log('Error fetching data:', error);
+        console.error('Error fetching data:', error);
         setError(error.message);
       } finally {
         setIsLoading(false);
@@ -59,6 +62,8 @@ export default function StudentDashboard() {
 
   // Calculate next report due
   const getNextReportDue = () => {
+    if (!Array.isArray(studentReports)) return null;
+    
     const pendingReports = studentReports.filter(report => report.status === 'PENDING');
     if (pendingReports.length === 0) return null;
     

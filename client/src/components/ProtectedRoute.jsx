@@ -10,13 +10,17 @@ export default function ProtectedRoute({ children }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.push('/login');
+      router.replace('/login');
     }
   }, [user, loading, router]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
-  return user ? children : null;
+  if (!user) {
+    return null;
+  }
+
+  return <>{children}</>;
 } 

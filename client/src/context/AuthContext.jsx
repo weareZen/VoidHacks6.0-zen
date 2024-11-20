@@ -21,6 +21,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('token');
+      console.log('Token:', token);
       const storedUser = localStorage.getItem('user');
 
       if (!token || !storedUser || storedUser === 'undefined') {
@@ -48,18 +49,49 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = async (userData, authToken) => {
-    setUser(userData);
-    setToken(authToken);
-    localStorage.setItem('token', authToken);
+    try {
+      if (!userData || !authToken) {
+        throw new Error('Invalid login data');
+      }
+
+      // Store in state
+      setUser(userData);
+      setToken(authToken);
+
+      // Store in localStorage
+      localStorage.setItem('token', authToken);
+      localStorage.setItem('user', JSON.stringify(userData));
+
+      // Set default authorization header
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('token', authToken);
+      }
+
+      console.log('Auth data stored:', { userData, token: authToken });
+    } catch (error) {
+      console.error('Error storing auth data:', error);
+      throw error;
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem('token');
-    jsCookie.remove('token', { path: '/' });
-    router.push('/login');
-    setUser(null);
+  const logout = async () => {
+    try {
+      // Clear all auth-related data from localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      // Reset state
+      setUser(null);
+      setToken(null);
+      
+      // Clear any auth cookies if they exist
+      document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      
+      // Redirect to login page
+      router.push('/login');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const value = {
