@@ -1,43 +1,66 @@
 const Report = require('../models/reportModel');
 const Student = require('../models/studentModel');
 const Notification = require('../models/notificationModel');
+const { cloudinary } = require('../config/cloudinary');
 
 // Submit Report
 exports.submitReport = async (req, res) => {
   try {
-    const { type, title, content, attachments } = req.body;
+    const { type, title, content } = req.body;
+    const files = req.files;
     const studentId = req.user.id;
 
+    // Get student and mentor info
     const student = await Student.findById(studentId).populate('internalMentor');
-    if (!student) {
-      return res.status(404).json({ message: 'Student not found' });
+    if (!student || !student.internalMentor) {
+      return res.status(400).json({ message: "Student or mentor not found" });
     }
+
+    // Process file uploads
+    const attachments = files ? await Promise.all(
+      files.map(async (file) => ({
+        url: file.path,
+        publicId: file.filename,
+        fileName: file.originalname
+      }))
+    ) : [];
+
+    // Calculate deadline based on report type
+    const deadline = calculateDeadline(type);
 
     const report = new Report({
       type,
-      student: studentId,
-      mentor: student.internalMentor._id,
       title,
       content,
+      student: studentId,
+      mentor: student.internalMentor._id,
+      deadline,
       attachments,
-      deadline: calculateDeadline(type),
-      submissionDate: new Date(),
-      status: 'SUBMITTED'
+      status: 'SUBMITTED',
+      submissionDate: new Date()
     });
 
     await report.save();
-    
-    // Update student progress
     await updateStudentProgress(studentId);
 
-    res.status(201).json({ 
+    // Create notification for mentor
+    await createNotification(
+      student.internalMentor._id,
+      'Mentor',
+      'REPORT_SUBMISSION',
+      'New Report Submission',
+      `${student.firstName} ${student.lastName} has submitted a ${type} report`
+    );
+
+    res.status(201).json({
       message: 'Report submitted successfully',
-      report 
+      report
     });
   } catch (error) {
-    res.status(500).json({ 
+    console.error('Error submitting report:', error);
+    res.status(500).json({
       message: 'Error submitting report',
-      error: error.message 
+      error: error.message
     });
   }
 };
@@ -49,7 +72,9 @@ exports.evaluateReport = async (req, res) => {
     const { points, feedback } = req.body;
     const mentorId = req.user.id;
 
-    const report = await Report.findById(reportId);
+    const report = await Report.findById(reportId)
+      .populate('student', 'firstName lastName');
+
     if (!report) {
       return res.status(404).json({ message: 'Report not found' });
     }
@@ -61,20 +86,25 @@ exports.evaluateReport = async (req, res) => {
       evaluatedBy: mentorId
     };
     report.status = 'EVALUATED';
-
     await report.save();
-    
-    // Update student progress after evaluation
-    await updateStudentProgress(report.student);
 
-    res.status(200).json({ 
+    // Create notification for student
+    await createNotification(
+      report.student._id,
+      'Student',
+      'REPORT_EVALUATED',
+      'Report Evaluated',
+      `Your ${report.type} report has been evaluated`
+    );
+
+    res.status(200).json({
       message: 'Report evaluated successfully',
-      report 
+      report
     });
   } catch (error) {
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Error evaluating report',
-      error: error.message 
+      error: error.message
     });
   }
 };
@@ -274,5 +304,29 @@ exports.checkOverdueReports = async () => {
     }
   } catch (error) {
     console.log('Error checking overdue reports:', error);
+  }
+};
+
+// Add file deletion when report is deleted
+exports.deleteReport = async (req, res) => {
+  try {
+    const report = await Report.findById(req.params.reportId);
+    
+    // Delete files from Cloudinary
+    if (report.attachments && report.attachments.length > 0) {
+      await Promise.all(
+        report.attachments.map(file => 
+          cloudinary.uploader.destroy(file.publicId)
+        )
+      );
+    }
+
+    await report.remove();
+    res.status(200).json({ message: 'Report deleted successfully' });
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error deleting report',
+      error: error.message
+    });
   }
 }; 

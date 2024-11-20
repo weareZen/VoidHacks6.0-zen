@@ -3,6 +3,10 @@ import React, { useEffect, useState, useRef } from "react";
 import { Send } from "lucide-react";
 import { io } from "socket.io-client";
 import { useAuth } from "../context/AuthContext";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { ScrollArea } from "../components/ui/scroll-area";
 
 const socket = io("http://localhost:5000", {
   transports: ["websocket"],
@@ -97,83 +101,62 @@ const Chat = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-gray-50 border border-gray-200 overflow-hidden">
-      <div className="bg-gray-100 text-gray-700 p-2 text-center font-semibold text-sm">
-        Chat Room
-      </div>
+    <Card className="flex flex-col h-[85vh] w-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg font-semibold">Chat Room</CardTitle>
+      </CardHeader>
 
-      <div className="flex-grow h-[70vh] overflow-y-auto p-2 space-y-2">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex flex-col ${
-              msg.isCurrentUser ? "items-end" : "items-start"
-            }`}
-          >
-            <div className="text-xs mb-0.5 text-gray-600 flex items-center gap-1">
-              <span>{msg.sender}</span>
-              <span className="text-xs text-gray-500">({msg.senderType})</span>
-            </div>
+      <CardContent className="flex-grow p-0">
+        <ScrollArea className="h-[calc(85vh-8rem)] w-full px-4">
+          {messages.map((msg) => (
             <div
-              className={`
-                max-w-[80%]
-                px-3
-                py-2
-                rounded-lg
-                text-sm
-                break-words
-                whitespace-normal
-                ${
-                  msg.isCurrentUser
-                    ? "bg-blue-500 text-white"
-                    : "bg-gray-200 text-black"
-                }
-              `}
+              key={msg.id}
+              className={`flex flex-col mb-4 ${
+                msg.isCurrentUser ? "items-end" : "items-start"
+              }`}
             >
-              {msg.text}
+              <div className="text-xs mb-1 text-muted-foreground flex items-center gap-1">
+                <span>{msg.sender}</span>
+                <span>({msg.senderType})</span>
+              </div>
+              <div
+                className={`
+                  max-w-[80%]
+                  px-4
+                  py-2
+                  rounded-lg
+                  text-sm
+                  ${
+                    msg.isCurrentUser
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-muted"
+                  }
+                `}
+              >
+                {msg.text}
+              </div>
             </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </div>
+          ))}
+          <div ref={messagesEndRef} />
+        </ScrollArea>
+      </CardContent>
 
-      <div className="p-3 bg-gray-100 flex items-center space-x-2">
-        <input
-          type="text"
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
-          placeholder="Type your message..."
-          className="
-            flex-grow
-            bg-white
-            text-gray-800
-            px-3
-            py-2
-            rounded-lg
-            text-sm
-            border
-            border-gray-300
-            outline-none
-            focus:border-blue-500
-            transition-colors
-          "
-        />
-        <button
-          onClick={handleSendMessage}
-          className="
-            bg-blue-500
-            text-white
-            p-2
-            rounded-lg
-            hover:bg-blue-600
-            transition-colors
-          "
-        >
-          <Send size={20} />
-        </button>
-      </div>
-    </div>
+      <CardFooter className="p-4">
+        <div className="flex w-full items-center space-x-2">
+          <Input
+            type="text"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+            placeholder="Type your message..."
+            className="flex-grow"
+          />
+          <Button onClick={handleSendMessage} size="icon">
+            <Send className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardFooter>
+    </Card>
   );
 };
 

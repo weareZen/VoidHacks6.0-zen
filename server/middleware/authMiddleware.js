@@ -3,17 +3,29 @@ const Admin = require('../models/adminModel');
 
 exports.authMiddleware = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    // Get token from header
+    const authHeader = req.header('Authorization');
+    
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ message: "No authentication token, access denied" });
+    }
+
+    const token = authHeader.replace('Bearer ', '');
     
     if (!token) {
       return res.status(401).json({ message: "No authentication token, access denied" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = decoded;
+      next();
+    } catch (err) {
+      res.status(401).json({ message: "Token is invalid" });
+    }
   } catch (error) {
-    res.status(401).json({ message: "Token is not valid" });
+    console.error('Auth middleware error:', error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 

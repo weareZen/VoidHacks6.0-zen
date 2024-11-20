@@ -2,6 +2,7 @@ const Student = require("../models/studentModel");
 const Mentor = require("../models/mentorModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const Report = require("../models/reportModel");
 
 // Register Student
 exports.registerStudent = async (req, res) => {
@@ -104,15 +105,35 @@ exports.getAllStudents = async (req, res) => {
 exports.getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
+    const student = await Student.findById(id)
+      .populate('internalMentor', 'firstName lastName email department')
+      .populate('internshipDetails');
 
-    const student = await Student.findById(id).populate("internalMentor", "firstName lastName email");
     if (!student) {
       return res.status(404).json({ message: "Student not found" });
     }
 
-    res.status(200).json({ message: "Student retrieved successfully", student });
+    res.status(200).json({
+      message: "Student retrieved successfully",
+      student: {
+        id: student._id,
+        firstName: student.firstName,
+        lastName: student.lastName,
+        email: student.email,
+        enrollementNumber: student.enrollementNumber,
+        phoneNumber: student.phoneNumber,
+        internshipDetails: student.internshipDetails,
+        internalMentor: student.internalMentor,
+        progress: student.progress || {
+          totalReports: 0,
+          completedReports: 0,
+          overallCompletionPercentage: 0
+        }
+      }
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving student", error });
+    console.error('Error in getStudentById:', error);
+    res.status(500).json({ message: "Error retrieving student", error: error.message });
   }
 };
 
@@ -141,5 +162,24 @@ exports.assignInternalMentor = async (req, res) => {
     res.status(200).json({ message: "Internal mentor assigned successfully", student });
   } catch (error) {
     res.status(500).json({ message: "Error assigning internal mentor", error });
+  }
+};
+
+exports.getStudentReports = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const reports = await Report.find({ student: studentId })
+      .populate('mentor', 'firstName lastName')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      message: "Reports retrieved successfully",
+      reports
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      message: "Error retrieving reports",
+      error: error.message 
+    });
   }
 };

@@ -12,69 +12,75 @@ import ReportList from '../ReportList';
 export default function StudentDashboard() {
   const { user } = useAuth();
   const [studentReports, setStudentReports] = useState([]);
+  const [studentData, setStudentData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isDataLoading, setIsDataLoading] = useState(true);
-  
+  const [error, setError] = useState(null);
+  const [showReportForm, setShowReportForm] = useState(false);
+
   useEffect(() => {
-    if (user?.id) {
-      fetchReports();
-    }
-  }, [user]);
+    const fetchStudentData = async () => {
+      try {
+        if (!user?.id) return;
 
-  const fetchReports = async () => {
-    try {
-      if (!user?.id) {
-        throw new Error('User ID not found');
-      }
+        const [reportsResponse, studentResponse] = await Promise.all([
+          fetch(`http://localhost:5000/api/v1/reports/student/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }),
+          fetch(`http://localhost:5000/api/v1/students/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          })
+        ]);
 
-      const response = await fetch(`http://localhost:5000/api/v1/reports/student/${user.id}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        if (!reportsResponse.ok || !studentResponse.ok) {
+          throw new Error('Failed to fetch data');
         }
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch reports');
-      
-      const data = await response.json();
-      setStudentReports(data);
-    } catch (error) {
-      console.log('Error fetching reports:', error);
-    } finally {
-      setIsLoading(false);
-    }
+
+        const [reportsData, studentData] = await Promise.all([
+          reportsResponse.json(),
+          studentResponse.json()
+        ]);
+
+        setStudentReports(reportsData.reports);
+        setStudentData(studentData.student);
+      } catch (error) {
+        console.log('Error fetching data:', error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStudentData();
+  }, [user?.id]);
+
+  // Calculate next report due
+  const getNextReportDue = () => {
+    const pendingReports = studentReports.filter(report => report.status === 'PENDING');
+    if (pendingReports.length === 0) return null;
+    
+    return pendingReports.reduce((nearest, report) => {
+      return new Date(report.deadline) < new Date(nearest.deadline) ? report : nearest;
+    });
   };
 
-  if (isLoading) return <Loading />;
-  if (isDataLoading) return <DashboardSkeleton />;
-
-  // Static data for now
-  const internshipDetails = {
-    companyName: "Tech Corp",
-    startDate: "2024-01-01",
-    endDate: "2024-06-30",
-    status: "Approved",
-    type: "Full-time"
-  };
-
-  const mentorDetails = {
-    name: "Dr. John Doe",
-    email: "john.doe@university.edu",
-    phone: "+1234567890"
-  };
-
-  const progress = {
-    reportsSubmitted: 3,
-    totalReports: 12,
-    completionPercentage: 25
-  };
+  const nextReport = getNextReportDue();
+  const daysUntilDue = nextReport ? 
+    Math.ceil((new Date(nextReport.deadline) - new Date()) / (1000 * 60 * 60 * 24)) : 
+    null;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Welcome Banner */}
       <Card className="bg-primary text-primary-foreground">
         <CardHeader>
-          <CardTitle className="text-2xl">Welcome, {user?.firstName}!</CardTitle>
-          <p className="text-lg opacity-90">Internship Status: {internshipDetails.status}</p>
+          <CardTitle className="text-2xl">Welcome, {studentData?.firstName}!</CardTitle>
+          <p className="text-lg opacity-90">
+            Internship Status: {studentData?.internshipDetails?.status}
+          </p>
         </CardHeader>
       </Card>
 
@@ -86,9 +92,9 @@ export default function StudentDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <Progress value={progress.completionPercentage} />
+              <Progress value={studentData?.progress?.overallCompletionPercentage || 0} />
               <p className="text-sm text-muted-foreground">
-                {progress.reportsSubmitted} of {progress.totalReports} reports submitted
+                {studentData?.progress?.completedReports} of {studentData?.progress?.totalReports} reports submitted
               </p>
             </div>
           </CardContent>
@@ -99,76 +105,63 @@ export default function StudentDashboard() {
             <CardTitle className="text-lg">Next Report Due</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold">5 Days</p>
-            <Button className="mt-4" variant="outline">
-              <FileUp className="mr-2" />
-              Submit Report
-            </Button>
+            {nextReport ? (
+              <>
+                <p className="text-2xl font-bold">{daysUntilDue} Days</p>
+                <Button 
+                  className="mt-4" 
+                  variant="outline"
+                  onClick={() => setShowReportForm(true)}
+                >
+                  <FileUp className="mr-2" />
+                  Submit Report
+                </Button>
+              </>
+            ) : (
+              <p>No pending reports</p>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Notifications</CardTitle>
+            <CardTitle className="text-lg">Internship Details</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              <p className="text-sm">• Report #4 due soon</p>
-              <p className="text-sm">• New message from mentor</p>
+              <p><span className="font-medium">Company:</span> {studentData?.internshipDetails?.companyName}</p>
+              <p><span className="font-medium">Duration:</span> {
+                `${new Date(studentData?.internshipDetails?.startDate).toLocaleDateString()} to 
+                 ${new Date(studentData?.internshipDetails?.endDate).toLocaleDateString()}`
+              }</p>
+              <p><span className="font-medium">Type:</span> {studentData?.internshipDetails?.internshipType}</p>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <ReportSubmission />
-      <ReportList reports={studentReports} />
-
-      {/* Internship Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Internship Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="font-medium">Company</p>
-              <p className="text-muted-foreground">{internshipDetails.companyName}</p>
-            </div>
-            <div>
-              <p className="font-medium">Duration</p>
-              <p className="text-muted-foreground">
-                {internshipDetails.startDate} to {internshipDetails.endDate}
-              </p>
-            </div>
-            <div>
-              <p className="font-medium">Type</p>
-              <p className="text-muted-foreground">{internshipDetails.type}</p>
-            </div>
-            <div>
-              <p className="font-medium">Status</p>
-              <p className="text-muted-foreground">{internshipDetails.status}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Mentor Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Internal Mentor</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <p><span className="font-medium">Name:</span> {mentorDetails.name}</p>
-            <p><span className="font-medium">Email:</span> {mentorDetails.email}</p>
-            <p><span className="font-medium">Phone:</span> {mentorDetails.phone}</p>
-            <Button className="mt-4" variant="outline">
-              <MessageCircle className="mr-2" />
-              Message Mentor
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {studentData?.internalMentor && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Internal Mentor</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <p>
+                <span className="font-medium">Name:</span> 
+                {`${studentData.internalMentor.firstName} ${studentData.internalMentor.lastName}`}
+              </p>
+              <p><span className="font-medium">Email:</span> {studentData.internalMentor.email}</p>
+              <p><span className="font-medium">Phone:</span> {studentData.internalMentor.phone}</p>
+              <Button className="mt-4" variant="outline">
+                <MessageCircle className="mr-2" />
+                Message Mentor
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 } 

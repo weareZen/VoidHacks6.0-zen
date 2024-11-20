@@ -21,31 +21,26 @@ import DeadlineNotifications from '../DeadlineNotifications';
 
 export default function MentorDashboard() {
   const { user } = useAuth();
+  const [mentorStats, setMentorStats] = useState(null);
+  const [reports, setReports] = useState({ pending: [], all: [] });
   const [isLoading, setIsLoading] = useState(true);
-  const [isDataLoading, setIsDataLoading] = useState(true);
-  const [mentorStats, setMentorStats] = useState({
-    totalStudents: 0,
-    pendingEvaluations: 0,
-    averageCompletion: 0
-  });
-  const [pendingReports, setPendingReports] = useState([]);
-  const [allReports, setAllReports] = useState([]);
-  
-  useEffect(() => {
-    // Initial loading animation
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+  const [error, setError] = useState(null);
 
-    // Simulated data fetch
-    const fetchData = async () => {
+  useEffect(() => {
+    const fetchMentorData = async () => {
       try {
+        if (!user?.id) return;
+
         const [statsResponse, reportsResponse] = await Promise.all([
-          fetch(`http://localhost:5000/api/v1/mentor/stats/${user.id}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+          fetch(`http://localhost:5000/api/v1/mentor/${user.id}/dashboard-stats`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
           }),
           fetch(`http://localhost:5000/api/v1/reports/mentor/${user.id}`, {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
           })
         ]);
 
@@ -53,53 +48,30 @@ export default function MentorDashboard() {
           throw new Error('Failed to fetch data');
         }
 
-        const stats = await statsResponse.json();
-        const reports = await reportsResponse.json();
+        const [statsData, reportsData] = await Promise.all([
+          statsResponse.json(),
+          reportsResponse.json()
+        ]);
 
-        setMentorStats(stats);
-        setPendingReports(reports.pendingReports);
-        setAllReports(reports.allReports);
+        setMentorStats(statsData);
+        setReports({
+          pending: reportsData.pendingReports || [],
+          all: reportsData.allReports || []
+        });
       } catch (error) {
-        console.log('Error fetching data:', error);
+        console.error('Error fetching data:', error);
+        setError(error.message);
       } finally {
-        setIsDataLoading(false);
+        setIsLoading(false);
       }
     };
 
-    fetchData();
-    return () => clearTimeout(timer);
-  }, []);
+    fetchMentorData();
+  }, [user?.id]);
 
+  if (error) return <div>Error loading dashboard: {error}</div>;
   if (isLoading) return <Loading />;
-  if (isDataLoading) return <DashboardSkeleton />;
-
-  // Static data for now
-  const assignedStudents = [
-    {
-      id: 1,
-      name: "Alice Johnson",
-      enrollmentNumber: "EN2024001",
-      company: "Tech Corp",
-      status: "Approved",
-      progress: {
-        reportsSubmitted: 3,
-        totalReports: 12,
-        completionPercentage: 25
-      }
-    },
-    {
-      id: 2,
-      name: "Bob Smith",
-      enrollmentNumber: "EN2024002",
-      company: "Innovation Labs",
-      status: "Pending",
-      progress: {
-        reportsSubmitted: 4,
-        totalReports: 12,
-        completionPercentage: 33
-      }
-    }
-  ];
+  if (!mentorStats) return <div>No mentor data found</div>;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -147,7 +119,7 @@ export default function MentorDashboard() {
         </Button>
       </div>
 
-      <DeadlineNotifications reports={pendingReports} />
+      <DeadlineNotifications reports={reports.pending} />
 
       {/* Reports Analytics */}
       <Card className="lg:col-span-2">
@@ -155,7 +127,7 @@ export default function MentorDashboard() {
           <CardTitle>Reports Analytics</CardTitle>
         </CardHeader>
         <CardContent>
-          <ReportAnalytics reports={allReports} />
+          <ReportAnalytics reports={reports.all} />
         </CardContent>
       </Card>
 
@@ -199,7 +171,7 @@ export default function MentorDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {pendingReports.map((report) => (
+              {reports.pending.map((report) => (
                 <div key={report.id} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="space-y-1">
                     <p className="font-medium">{report.title}</p>

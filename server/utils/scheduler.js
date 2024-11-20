@@ -1,28 +1,40 @@
 const cron = require('node-cron');
+const { checkOverdueReports, checkAndCreateDueReports } = require('../controllers/reportController');
 const Student = require('../models/studentModel');
-const { checkAndCreateDueReports, checkOverdueReports } = require('../controllers/reportController');
 
 // Run daily at midnight
-const initializeScheduler = () => {
-  cron.schedule('0 0 * * *', async () => {
-    try {
-      // Check for all active students
-      const activeStudents = await Student.find({
-        'internshipDetails.status': 'Approved',
-        'internshipDetails.endDate': { $gt: new Date() }
-      });
+cron.schedule('0 0 * * *', async () => {
+  try {
+    // Check for overdue reports
+    await checkOverdueReports();
 
-      // Create due reports for each student
-      for (const student of activeStudents) {
-        await checkAndCreateDueReports(student._id);
-      }
-
-      // Check for overdue reports
-      await checkOverdueReports();
-    } catch (error) {
-      console.log('Scheduler error:', error);
+    // Create due reports for all active students
+    const students = await Student.find({ 'internshipDetails.status': 'Approved' });
+    for (const student of students) {
+      await checkAndCreateDueReports(student._id);
     }
-  });
+  } catch (error) {
+    console.error('Scheduler error:', error);
+  }
+});
+
+module.exports  = cron.schedule('0 0 * * *', async () => {
+  try {
+    // Check for overdue reports
+    await checkOverdueReports();
+
+    // Create due reports for all active students
+    const students = await Student.find({ 'internshipDetails.status': 'Approved' });
+    for (const student of students) {
+      await checkAndCreateDueReports(student._id);
+    }
+  } catch (error) {
+    console.error('Scheduler error:', error);
+  }
+}); 
+
+const initializeScheduler = () => {
+  console.log('Scheduler initialized successfully!');
 };
 
-module.exports = initializeScheduler; 
+module.exports = initializeScheduler;

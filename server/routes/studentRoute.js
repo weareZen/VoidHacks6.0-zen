@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const studentController = require("../controllers/studentController");
+const { authMiddleware } = require("../middleware/authMiddleware");
 
 // Register Student
 router.post("/register", studentController.registerStudent);
@@ -12,9 +13,13 @@ router.post("/login", studentController.loginStudent);
 router.get("/all", studentController.getAllStudents);
 
 // Get particular student by ID
-router.get("/:id", studentController.getStudentById);
+router.get("/:id", authMiddleware, studentController.getStudentById);
+router.get("/reports/:studentId", authMiddleware, studentController.getStudentReports);
 
 // Assign Internal Mentor
 router.put("/:id/assign-mentor", studentController.assignInternalMentor);
+
+// Update the existing route to be more specific for profile
+router.get('/profile/:id', authMiddleware, studentController.getStudentById);
 
 module.exports = router;
