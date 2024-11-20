@@ -19,7 +19,7 @@ router.get("/profile/:id", authMiddleware, mentorController.getMentorById);
 router.get("/:mentorId/assigned-students", authMiddleware, mentorController.getAssignedStudents);
 
 // Add these new routes
-router.get("/:mentorId/dashboard-stats", mentorController.getDashboardStats);
+router.get("/:id/dashboard-stats", authMiddleware, mentorController.getDashboardStats);
 router.get("/:mentorId/pending-evaluations", mentorController.getPendingEvaluations);
 // router.post("/evaluate-report", mentorController.evaluateReport);
 // router.post("/create-assignment", mentorController.createAssignment);

@@ -108,6 +108,12 @@ const studentSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+
+  // Add this inside the studentSchema
+  reports: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Report'
+  }],
 });
 
 const Student = mongoose.model("Student", studentSchema);

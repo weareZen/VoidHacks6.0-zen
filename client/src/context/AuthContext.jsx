@@ -27,24 +27,34 @@ export function AuthProvider({ children }) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
-      } else {
-        try {
-          const parsedUser = JSON.parse(storedUser);
-          if (parsedUser && typeof parsedUser === 'object') {
-            setUser(parsedUser);
-          } else {
-            localStorage.removeItem('user');
-            setUser(null);
-          }
-        } catch {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser && typeof parsedUser === 'object') {
+          setUser(parsedUser);
+        } else {
           localStorage.removeItem('user');
           setUser(null);
         }
+      } catch {
+        localStorage.removeItem('user');
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
+    // Add cleanup timeout
+    const loadingTimeout = setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+
     checkAuth();
+
+    return () => clearTimeout(loadingTimeout);
   }, []);
 
   const login = async (userData, authToken) => {
@@ -78,25 +88,34 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      // Clear all auth-related data from localStorage
-      localStorage.clear();
+      setLoading(true);
+      
+      // First clear all storage
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
       sessionStorage.clear();
       
       // Reset state
       setUser(null);
       setToken(null);
       
-      // Clear any auth cookies
+      // Clear cookies
       document.cookie.split(";").forEach((c) => {
         document.cookie = c
           .replace(/^ +/, "")
           .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
       });
       
-      // Use window.location for hard redirect
-      window.location.replace('/login');
+      // Important: Set loading to false before redirect
+      setLoading(false);
+      
+      // Force redirect to login page
+      window.location.href = '/login';
     } catch (error) {
       console.error('Logout error:', error);
+      setLoading(false);
+      // Still redirect on error
+      window.location.href = '/login';
     }
   };
 

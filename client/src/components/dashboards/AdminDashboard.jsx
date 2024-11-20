@@ -18,7 +18,7 @@ import { DashboardSkeleton } from '../../components/ui/loading';
 import Loading from '../../components/Loading';
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isDataLoading, setIsDataLoading] = useState(true);
   const [adminStats, setAdminStats] = useState({
@@ -107,9 +107,11 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
+      setIsLoading(true);
       await logout();
     } catch (error) {
       console.error('Error logging out:', error);
+      setIsLoading(false);
     }
   };
 

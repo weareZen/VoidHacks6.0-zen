@@ -23,6 +23,7 @@ export default function MentorDashboard() {
   const { user } = useAuth();
   const [mentorStats, setMentorStats] = useState(null);
   const [reports, setReports] = useState({ pending: [], all: [] });
+  const [assignedStudents, setAssignedStudents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -31,26 +32,32 @@ export default function MentorDashboard() {
       try {
         if (!user?.id) return;
 
-        const [statsResponse, reportsResponse] = await Promise.all([
-          fetch(`http://localhost:5000/api/v1/mentor/${user.id}/dashboard-stats`, {
+        const [statsResponse, reportsResponse, studentsResponse] = await Promise.all([
+          fetch(`${process.env.NEXT_APP_API_URL || 'http://localhost:5000/api/v1'}/mentors/${user.id}/dashboard-stats`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           }),
-          fetch(`http://localhost:5000/api/v1/reports/mentor/${user.id}`, {
+          fetch(`${process.env.NEXT_APP_API_URL || 'http://localhost:5000/api/v1'}/reports/mentor/${user.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          }),
+          fetch(`${process.env.NEXT_APP_API_URL || 'http://localhost:5000/api/v1'}/mentors/${user.id}/assigned-students`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
           })
         ]);
 
-        if (!statsResponse.ok || !reportsResponse.ok) {
+        if (!statsResponse.ok || !reportsResponse.ok || !studentsResponse.ok) {
           throw new Error('Failed to fetch data');
         }
 
-        const [statsData, reportsData] = await Promise.all([
+        const [statsData, reportsData, studentsData] = await Promise.all([
           statsResponse.json(),
-          reportsResponse.json()
+          reportsResponse.json(),
+          studentsResponse.json()
         ]);
 
         setMentorStats(statsData);
@@ -58,6 +65,7 @@ export default function MentorDashboard() {
           pending: reportsData.pendingReports || [],
           all: reportsData.allReports || []
         });
+        setAssignedStudents(studentsData.assignedStudents || []);
       } catch (error) {
         console.error('Error fetching data:', error);
         setError(error.message);

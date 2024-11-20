@@ -1,6 +1,7 @@
 const Mentor = require("../models/mentorModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const Report = require("../models/reportModel");
 
 const generateToken = (mentor) => {
   return jwt.sign(
@@ -168,23 +169,44 @@ exports.getAssignedStudents = async (req, res) => {
 
 // Get Dashboard Stats
 exports.getDashboardStats = async (req, res) => {
-  const { mentorId } = req.params;
+  const { id } = req.params;
 
   try {
-    const mentor = await Mentor.findById(mentorId)
-      .populate('assignedStudents');
+    // First get the mentor and their assigned students
+    const mentor = await Mentor.findById(id);
     
-    const stats = {
-      totalStudents: mentor.assignedStudents.length,
-      pendingEvaluations: 0, // Calculate from reports
-      averageCompletion: 0, // Calculate from student progress
-    };
+    if (!mentor) {
+      return res.status(404).json({ message: "Mentor not found" });
+    }
 
-    // Calculate pending evaluations and average completion
-    // ... implementation needed ...
+    // Get all reports for assigned students
+    const reports = await Report.find({
+      mentor: id,
+      student: { $in: mentor.assignedStudents }
+    });
+
+    // Calculate stats
+    const totalStudents = mentor.assignedStudents.length;
+    const pendingEvaluations = reports.filter(report => 
+      report.status === 'SUBMITTED'
+    ).length;
+
+    // Calculate completion percentage
+    const totalReports = reports.length || 1;
+    const evaluatedReports = reports.filter(report => 
+      report.status === 'EVALUATED'
+    ).length;
+    const averageCompletion = Math.round((evaluatedReports / totalReports) * 100);
+
+    const stats = {
+      totalStudents,
+      pendingEvaluations,
+      averageCompletion
+    };
 
     res.status(200).json(stats);
   } catch (error) {
+    console.error('Error in getDashboardStats:', error);
     res.status(500).json({ 
       message: "Error retrieving dashboard stats", 
       error: error.message 
