@@ -5,6 +5,7 @@ import { Progress } from '../../components/ui/progress';
 import { Button } from '../../components/ui/button';
 import { FileUp, MessageCircle, Bell } from 'lucide-react';
 import Loading from '../Loading';
+import Link from 'next/link';
 import { DashboardSkeleton } from '../ui/loading';
 import ReportSubmission from '../ReportSubmission'
 import ReportList from '../ReportList';
@@ -159,10 +160,10 @@ export default function StudentDashboard() {
               </p>
               <p><span className="font-medium">Email:</span> {studentData.internalMentor.email}</p>
               <p><span className="font-medium">Phone:</span> {studentData.internalMentor.phone}</p>
-              <Button className="mt-4" variant="outline">
+              <Link href="/student/chat" className="mt-4" variant="outline">
                 <MessageCircle className="mr-2" />
                 Message Mentor
-              </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
