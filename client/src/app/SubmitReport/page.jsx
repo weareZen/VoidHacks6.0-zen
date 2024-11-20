@@ -1,5 +1,5 @@
-import ReportSubmission from '../components/ReportSubmission';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import ReportSubmission from '../../components/ReportSubmission';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 
 export default function SubmitReport() {
   return (
