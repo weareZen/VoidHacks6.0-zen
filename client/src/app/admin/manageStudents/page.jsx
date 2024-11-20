@@ -1,52 +1,13 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { X, Search } from "lucide-react";
+import axios from "axios";
 
 const StudentManagement = () => {
-  const [students, setStudents] = useState([
-    {
-      id: "1",
-      firstName: "Sarah",
-      lastName: "Lee",
-      enrollementNumber: "987654321",
-      email: "sarah.lee@example.com",
-      phoneNumber: "9876543210",
-      password: "securePass123",
-      internalMentor: null,
-      internshipDetails: {
-        companyName: "Innovate Inc.",
-        companyAddress: "456 Innovation Road",
-        startDate: "2024-02-15",
-        endDate: "2024-08-15",
-        internshipType: "Part-time",
-        externalMentor: {
-          name: "Michael Brown",
-          contactInfo: "michael.brown@innovateinc.com",
-        },
-        status: "Pending",
-      },
-    },
-  ]);
-
-  const [mentors, setMentors] = useState([
-    {
-      id: "1",
-      firstName: "John",
-      lastName: "Doe",
-      department: "Computer Science",
-      email: "john.doe@university.edu",
-    },
-    {
-      id: "2",
-      firstName: "Jane",
-      lastName: "Smith",
-      department: "Data Science",
-      email: "jane.smith@university.edu",
-    },
-  ]);
-
+  const [students, setStudents] = useState([]);
+  const [mentors, setMentors] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);  
   const [isAssignMentorModalOpen, setIsAssignMentorModalOpen] = useState(false);
   const [mentorSearchTerm, setMentorSearchTerm] = useState("");
   const [newStudent, setNewStudent] = useState({
@@ -70,26 +31,67 @@ const StudentManagement = () => {
     },
   });
 
-  const handleCreateStudent = () => {
+  // Fetch students and mentors when the component mounts
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/v1/students/all");
+        setStudents(response.data.students || response.data || []); // Adjust based on API response structure
+      } catch (error) {
+        console.error("Error fetching students:", error);
+        alert("Failed to fetch students.");
+        setStudents([]); // Fallback to an empty array
+      }
+    };
+    const fetchMentors = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/api/v1/mentors/all");
+        setMentors(response.data);
+      } catch (error) {
+        console.error("Error fetching mentors:", error);
+        alert("Failed to fetch mentors.");
+      }
+    };
+
+    fetchStudents();
+    fetchMentors();
+  }, []);
+  
+  const handleCreateStudent = async () => {
     if (
-      !newStudent.firstName ||
-      !newStudent.lastName ||
-      !newStudent.enrollementNumber ||
-      !newStudent.email
+      !newStudent.firstName.trim() ||
+      !newStudent.lastName.trim() ||
+      !newStudent.enrollementNumber.trim() ||
+      !newStudent.email.trim()
     ) {
-      alert("Please fill in all required fields");
+      alert("Please fill in all required fields.");
       return;
     }
 
     const studentEntry = {
       ...newStudent,
-      id: String(students.length + 1),
-      internalMentor: null,
+      internshipDetails: {
+        ...newStudent.internshipDetails,
+        status: "Pending",
+      },
     };
 
-    setStudents([...students, studentEntry]);
-    setIsCreateModalOpen(false);
-    resetNewStudentForm();
+    try {
+      console.log(studentEntry)
+      const response = await axios.post("http://localhost:5000/api/v1/students/register", studentEntry);
+      
+      if (response.status === 201) {
+        setStudents((prevStudents) => [...prevStudents, response.data]);
+        setIsCreateModalOpen(false);
+        resetNewStudentForm();
+        alert("Student created successfully!");
+      } else {
+        alert("Failed to create student. Please try again.");
+      }
+    } catch (error) {
+      console.log("Error creating student:", error);
+      alert(error.response?.data?.message || "An unexpected error occurred while creating the student.");
+    }
   };
 
   const resetNewStudentForm = () => {
@@ -115,37 +117,52 @@ const StudentManagement = () => {
     });
   };
 
-  const handleAssignMentor = (mentor) => {
-    if (!selectedStudent) return;
+  const handleAssignMentor = async (mentorId) => {
+    console.log(mentorId)
+    console.log(selectedStudent._id)
+    if (!selectedStudent) {
+      alert("Please select a student to assign a mentor.");
+      return;
+    }
 
-    const updatedStudents = students.map((student) =>
-      student.id === selectedStudent.id
-        ? { ...student, internalMentor: mentor }
-        : student
-    );
+    const studentId = selectedStudent._id;  // Assuming the student has an 'id' field
 
-    setStudents(updatedStudents);
-    setIsAssignMentorModalOpen(false);
-    setSelectedStudent(null);
-    setMentorSearchTerm("");
+    try {
+      const response = await axios.put(
+        `http://localhost:5000/api/v1/students/${studentId}/assign-mentor`,
+        { mentorId }
+      );
+
+      if (response.status === 200) {
+        // Update the student data with the assigned mentor
+        setStudents((prevStudents) =>
+          prevStudents.map((student) =>
+            student.id === studentId ? { ...student, internalMentor: response.data.mentor } : student
+          )
+        );
+        alert("Mentor assigned successfully!");
+        setIsAssignMentorModalOpen(false);
+      } else {
+        alert("Failed to assign mentor.");
+      }
+    } catch (error) {
+      console.error("Error assigning mentor:", error);
+      alert("An error occurred while assigning the mentor.");
+    }
   };
 
   const filteredMentors = mentors.filter(
     (mentor) =>
-      `${mentor.firstName} ${mentor.lastName}`
-        .toLowerCase()
-        .includes(mentorSearchTerm.toLowerCase()) ||
-      mentor.department
-        .toLowerCase()
-        .includes(mentorSearchTerm.toLowerCase()) ||
+      `${mentor.firstName} ${mentor.lastName}`.toLowerCase().includes(mentorSearchTerm.toLowerCase()) ||
+      mentor.department.toLowerCase().includes(mentorSearchTerm.toLowerCase()) ||
       mentor.email.toLowerCase().includes(mentorSearchTerm.toLowerCase())
   );
 
   return (
     <>
-      <div className="min-h-screen bg-white p-8">
+          <div className="min-h-screen bg-white p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+          <div className="flex justify-between item s-center mb-6 pb-4 border-b border-gray-200">
             <h1 className="text-2xl font-bold text-gray-800">
               Student Management
             </h1>
@@ -247,8 +264,8 @@ const StudentManagement = () => {
                 <div className="space-y-2 max-h-64 overflow-y-auto">
                   {filteredMentors.map((mentor) => (
                     <div
-                      key={mentor.id}
-                      onClick={() => handleAssignMentor(mentor)}
+                      key={mentor._id}
+                      onClick={() => handleAssignMentor(mentor._id)}
                       className="flex justify-between items-center p-3 rounded hover:bg-gray-100 cursor-pointer"
                     >
                       <div>

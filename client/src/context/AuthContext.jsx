@@ -68,6 +68,9 @@ export function AuthProvider({ children }) {
       }
 
       console.log('Auth data stored:', { userData, token: authToken });
+      
+      // Force reload after login to ensure proper state
+      window.location.href = '/';
     } catch (error) {
       console.error('Error storing auth data:', error);
       throw error;
@@ -77,18 +80,23 @@ export function AuthProvider({ children }) {
   const logout = async () => {
     try {
       // Clear all auth-related data from localStorage
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      jsCookie.remove('token',{path: '/'});
+      localStorage.clear();
+      sessionStorage.clear();
       
       // Reset state
       setUser(null);
       setToken(null);
       
-      // Clear any auth cookies if they exist
-      document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      // Clear any auth cookies
+      document.cookie.split(";").forEach((c) => {
+        document.cookie = c
+          .replace(/^ +/, "")
+          .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
       
-      // Redirect to login page
-      router.push('/login');
+      // Use window.location for hard redirect
+      window.location.replace('/login');
     } catch (error) {
       console.error('Logout error:', error);
     }
